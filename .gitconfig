@@ -1,0 +1,28 @@
+[user]
+   name = Kevin Eugene Muncie
+   email = nivek2002@gmail.com
+[alias]
+   lg = log --color --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit
+   lgl = log --graph --stat --abbrev-commit --decorate --format=format:'%C(bold yellow)%h%C(reset) - %C(bold green)%ar%C(reset)%C(dim green) by %C(reset)%C(bold white)%an%C(reset)%C(dim green) on %aD%C(reset)%C(bold yellow)%d%C(reset)%n''%C(white)%s%C(reset)%n' --all
+   st = status -sb
+   ai = add --interactive
+   aa = add --all
+   la = "!git config -l | grep alias | cut -c 7-"
+   d = diff
+   ci = commit
+   f = fetch --all
+   rd = rebase origin/dev
+   pd = push origin dev
+   brd = "! f() { for k in $(git branch $@ | sed 's/^..//; s/ .*//'); do echo "$(git log -1 --pretty='%Cgreen%ci %Cblue(%cr)%Creset ' $k) $k" ; done | sort -r; }; f"
+[color "status"]
+   added = green
+   changed = red
+   untracked = cyan
+[color "diff"]
+   meta = yellow bold
+   frag = magenta bold
+   old = red white reverse
+   new = green
+   whitespace = white reverse
+[merge]
+   conflictstyle = diff3
