@@ -48,14 +48,14 @@ if [ -n "$force_color_prompt" ]; then
 fi
 
 if [ "$color_prompt" = yes ]; then
-   PS1=" \[$(tput sgr0)\]\[\033[38;5;238m\]\u\[$(tput sgr0)\]\[\033[38;5;242m\]@\[$(tput sgr0)\]\[\033[38;5;249m\]\h\[$(tput sgr0)\]\[\033[38;5;243m\]:\[$(tput bold)\]\[$(tput sgr0)\]\[\033[38;5;202m\]\w\[$(tput sgr0)\]\[$(tput sgr0)\]\[\033[38;5;243m\]\\$\[$(tput sgr0)\]"
+   PS1="\[\033[38;5;8m\]\u\[$(tput sgr0)\]\[\033[38;5;243m\]@\[$(tput sgr0)\]\[\033[38;5;252m\]\h\[$(tput sgr0)\]\[\033[38;5;243m\]:\[$(tput sgr0)\]\[\033[38;5;166m\]\w\[$(tput sgr0)\]\[\033[38;5;22m\]\\$\[$(tput sgr0)\]\[\033[38;5;15m\] \[$(tput sgr0)\]"
 else
    PS1='${debian_chroot:+($debian_chroot)}\u@\h:\w\$ '
 fi
 unset color_prompt force_color_prompt
 
 # Custom Colors from bashrcgenerator.com
-export PS1="\[\033[38;5;238m\]\u\[$(tput sgr0)\]\[\033[38;5;242m\]@\[$(tput sgr0)\]\[\033[38;5;249m\]\h\[$(tput sgr0)\]\[\033[38;5;243m\]:\[$(tput bold)\]\[$(tput sgr0)\]\[\033[38;5;202m\]\w\[$(tput sgr0)\]\[$(tput sgr0)\]\[\033[38;5;243m\]\\$\[$(tput sgr0)\]"
+export PS1="\[\033[38;5;8m\]\u\[$(tput sgr0)\]\[\033[38;5;243m\]@\[$(tput sgr0)\]\[\033[38;5;252m\]\h\[$(tput sgr0)\]\[\033[38;5;243m\]:\[$(tput sgr0)\]\[\033[38;5;166m\]\w\[$(tput sgr0)\]\[\033[38;5;22m\]\\$\[$(tput sgr0)\]\[\033[38;5;15m\] \[$(tput sgr0)\]"
 
 # If this is an xterm set the title to user@host:dir
 case "$TERM" in
