@@ -9,6 +9,9 @@
    aa = add --all
    la = "!git config -l | grep alias | cut -c 7-"
    d = diff
+   co = checkout
+   cob = checkout -b
+   ff = pull --ff-only
    ci = commit
    f = fetch --all
    rd = rebase origin/dev
