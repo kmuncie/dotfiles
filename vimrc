@@ -12,3 +12,5 @@ set background=dark
 set colorcolumn=90
 set showmatch
 set number
+filetype plugin on
+set omnifunc=syntaxcomplete#Complete
