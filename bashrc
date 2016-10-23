@@ -106,6 +106,10 @@ rmcache () {
    popd
 }
 
+# Function to adj volume on raspberry pi
+vol () {
+   amixer cset numid=1 -- $1%
+}
 
 if [ -f ~/.bash_aliases ]; then
    . ~/.bash_aliases
