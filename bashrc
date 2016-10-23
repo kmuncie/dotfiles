@@ -123,6 +123,8 @@ if [ -d "$HOME/bin" ] ; then
    PATH="$HOME/bin:$PATH"
 fi
 
+export PATH="/usr/local/opt/coreutils/libexec/gnubin:$PATH"
+
 if [ -f ~/dotfiles/.git-autocomplete.sh ]; then
   . ~/dotfiles/.git-autocomplete.sh
 fi
