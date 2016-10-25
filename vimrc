@@ -30,6 +30,7 @@ set omnifunc=syntaxcomplete#Complete
 map <leader>s :source ~/.vimrc<CR> 
 " Hit ii to exit insert mode  
 map ii <Esc> 
+imap ii <Esc>
 
 " Disable arrow keys
 map <up> <nop>
