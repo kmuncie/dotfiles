@@ -135,6 +135,4 @@ fi
 
 
 # Custom aliases
-alias gitco='bgit -p ~/jworg-cs --verbose --checkout'
-alias gitup='bgit -p ~/jworg-cs --verbose --update'
 alias ag='ag --pager="less -r"'

@@ -1,7 +1,7 @@
 " VIM Config - Kevin Muncie
 
 " -- Display
-set title 
+set title
 set number
 set ruler " Cursor position
 set wrap " Wrap lines
@@ -25,12 +25,32 @@ filetype plugin on
 set omnifunc=syntaxcomplete#Complete
 
 " -- Key Mappings
-  
+
 " Hit <leader> (should be \) + s to reload config after saving
-map <leader>s :source ~/.vimrc<CR> 
-" Hit ii to exit insert mode  
-map ii <Esc> 
+map <leader>s :source ~/.vimrc<CR>
+" Hit ii to exit insert mode
+map ii <Esc>
 imap ii <Esc>
+
+" Removes trailing spaces
+function! StripTrailingWhitespace()
+   normal mZ
+   let l:chars = col("$")
+   %s/\s\+$//e
+   if (line("'Z") != line(".")) || (l:chars != col("$"))
+      echo "Trailing whitespace stripped\n"
+   endif
+   normal `Z
+endfunction
+
+" Hit F5 to clear trailing whitespace at any time
+nnoremap <silent> <F5> :let _s=@/ <Bar> call StripTrailingWhitespace() <Bar> :let @/=_s <Bar> :nohl <Bar> :unlet _s <CR>
+" Comment a line at any time
+autocmd FileType scss,javascript nnoremap <buffer> <localleader>c I//<esc>
+" Set nowrap on HTML files
+autocmd BufNewFile,BufRead *.html setlocal nowrap
+" Remove trailing write space on save
+autocmd BufWritePre * call StripTrailingWhitespace()
 
 " Disable arrow keys
 map <up> <nop>
