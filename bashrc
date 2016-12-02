@@ -129,9 +129,9 @@ fi
 
 export PATH="/usr/local/opt/coreutils/libexec/gnubin:$PATH"
 
-if [ -f ~/dotfiles/.git-autocomplete.sh ]; then
-  . ~/dotfiles/.git-autocomplete.sh
-fi
+#if [ -f ~/dotfiles/.git-autocomplete.sh ]; then
+#  . ~/dotfiles/.git-autocomplete.sh
+#fi
 
 
 # Custom aliases
