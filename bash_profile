@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 echo "Loading ${HOME}/.bash_profile"
 # source ~/.profile # get my PATH setup
