@@ -24,6 +24,10 @@ set showmatch
 filetype plugin on
 set omnifunc=syntaxcomplete#Complete
 
+" Airline Theme
+let g:airline_theme='base16'
+let g:airline#extensions#tabline#enabled = 1
+
 " -- Key Mappings
 
 " Hit <leader> (should be \) + s to reload config after saving
@@ -62,3 +66,16 @@ imap <down> <nop>
 imap <left> <nop>
 imap <right> <nop>
 
+" vim-plug plugin manager https://github.com/junegunn/vim-plug
+
+call plug#begin()
+
+" Fuzzy file finder
+Plug 'ctrlpvim/ctrlp.vim'
+" File Tree Viewer
+Plug 'scrooloose/nerdtree'
+" Vim Airline
+Plug 'vim-airline/vim-airline'
+Plug 'vim-airline/vim-airline-themes'
+
+call plug#end()
