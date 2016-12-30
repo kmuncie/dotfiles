@@ -111,3 +111,5 @@ Plug 'vim-airline/vim-airline-themes'
 Plug 'edkolev/tmuxline.vim'
 Plug 'tpope/vim-fugitive'
 call plug#end()
+
+let g:ctrlp_clear_cache_on_exit = 0
