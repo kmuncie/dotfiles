@@ -25,8 +25,38 @@ filetype plugin on
 set omnifunc=syntaxcomplete#Complete
 
 " Airline Theme
-let g:airline_theme='base16'
+set laststatus=2
+let g:airline_theme='wombat'
 let g:airline#extensions#tabline#enabled = 1
+let g:airline_powerline_fonts = 1
+let g:airline_powerline_fonts = 1
+
+"if !exists('g:airline_symbols')
+   "let g:airline_symbols = {}
+"endif
+
+" unicode symbols
+"let g:airline_left_sep = '»'
+"let g:airline_left_sep = '▶'
+"let g:airline_right_sep = '«'
+"let g:airline_right_sep = '◀'
+"let g:airline_symbols.linenr = '␊'
+"let g:airline_symbols.linenr = '␤'
+"let g:airline_symbols.linenr = '¶'
+"let g:airline_symbols.branch = '⎇'
+"let g:airline_symbols.paste = 'ρ'
+"let g:airline_symbols.paste = 'Þ'
+"let g:airline_symbols.paste = '∥'
+"let g:airline_symbols.whitespace = 'Ξ'
+
+" airline symbols
+"let g:airline_left_sep = ''
+"let g:airline_left_alt_sep = ''
+"let g:airline_right_sep = ''
+"let g:airline_right_alt_sep = ''
+"let g:airline_symbols.branch = ''
+"let g:airline_symbols.readonly = ''
+"let g:airline_symbols.linenr = ''
 
 " -- Key Mappings
 
@@ -66,6 +96,7 @@ imap <down> <nop>
 imap <left> <nop>
 imap <right> <nop>
 
+
 " vim-plug plugin manager https://github.com/junegunn/vim-plug
 
 call plug#begin()
@@ -73,9 +104,10 @@ call plug#begin()
 " Fuzzy file finder
 Plug 'ctrlpvim/ctrlp.vim'
 " File Tree Viewer
-Plug 'scrooloose/nerdtree'
-" Vim Airline
+Plug 'scrooloose/nerdtree', { 'on': 'NERDTreeToggle' }
+" vim-ailine
 Plug 'vim-airline/vim-airline'
 Plug 'vim-airline/vim-airline-themes'
-
+Plug 'edkolev/tmuxline.vim'
+Plug 'tpope/vim-fugitive'
 call plug#end()
