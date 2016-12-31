@@ -6,8 +6,10 @@ set number
 set ruler " Cursor position
 set wrap " Wrap lines
 
+set t_Co=256
 set guioptions=T " Enable the toolbar
 set showcmd
+set ttimeoutlen=50
 
 syntax on
 colorscheme gruvbox " Custom color scheme in /vim folder
@@ -28,7 +30,6 @@ set omnifunc=syntaxcomplete#Complete
 set laststatus=2
 let g:airline_theme='wombat'
 let g:airline#extensions#tabline#enabled = 1
-let g:airline_powerline_fonts = 1
 let g:airline_powerline_fonts = 1
 
 "if !exists('g:airline_symbols')
