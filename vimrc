@@ -111,6 +111,7 @@ Plug 'vim-airline/vim-airline'
 Plug 'vim-airline/vim-airline-themes'
 Plug 'edkolev/tmuxline.vim'
 Plug 'tpope/vim-fugitive'
+Plug 'cakebaker/scss-syntax.vim'
 call plug#end()
 
 let g:ctrlp_clear_cache_on_exit = 0
