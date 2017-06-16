@@ -15,6 +15,7 @@ syntax on
 colorscheme gruvbox " Custom color scheme in /vim folder
 set background=dark " Applied to gruvbox color scheme set above
 set colorcolumn=140
+highlight ColorColumn ctermbg=1
 
 " -- Text editing preferences
 set autoindent
