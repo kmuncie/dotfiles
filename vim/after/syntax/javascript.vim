@@ -6,8 +6,10 @@ fun! AdjustWrapForLine()
 
       if !empty(matched)
          set textwidth=90
+         set colorcolumn=90
       else
          set textwidth=140
+         set colorcolumn=140
       endif
    endif
 endfun
