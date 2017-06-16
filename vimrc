@@ -114,3 +114,8 @@ Plug 'tpope/vim-fugitive'
 call plug#end()
 
 let g:ctrlp_clear_cache_on_exit = 0
+let g:ctrlp_by_filename = 1
+let g:ctrlp_use_caching = 1
+" Skip files listed in .gitignore (faster load time)
+let g:ctrlp_user_command = ['.git/', 'git --git-dir=%s/.git ls-files -oc --exclude-standard']
+
