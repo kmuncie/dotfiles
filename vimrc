@@ -87,6 +87,8 @@ autocmd FileType scss,javascript nnoremap <buffer> <localleader>c I//<esc>
 autocmd BufNewFile,BufRead *.html setlocal nowrap
 " Remove trailing write space on save
 autocmd BufWritePre * call StripTrailingWhitespace()
+" Set .md files to have proper markdown syntax highlighting
+autocmd BufNewFile,BufFilePre,BufRead *.md set filetype=markdown
 
 " Disable arrow keys
 map <up> <nop>
