@@ -61,12 +61,17 @@ let g:airline_powerline_fonts = 1
 "let g:airline_symbols.linenr = ''
 
 " -- Key Mappings
-
+"
 " Hit <leader> (should be \) + s to reload config after saving
 map <leader>s :source ~/.vimrc<CR>
 " Hit ii to exit insert mode
 map ii <Esc>
 imap ii <Esc>
+
+" Paste Toggle
+nnoremap <F2> :set invpaste paste?<CR>
+set pastetoggle=<F2>
+set showmode
 
 " Toggle between absolute and relative line numbering
 " Enables relative numbers.
