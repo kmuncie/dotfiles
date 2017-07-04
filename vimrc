@@ -10,6 +10,7 @@ set t_Co=256
 set guioptions=T " Enable the toolbar
 set showcmd
 set ttimeoutlen=50
+set relativenumber
 
 syntax on
 colorscheme gruvbox " Custom color scheme in /vim folder
