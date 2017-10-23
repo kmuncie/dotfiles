@@ -27,6 +27,10 @@ set showmatch
 filetype plugin on
 set omnifunc=syntaxcomplete#Complete
 
+" -- Search preferences
+set incsearch
+set hlsearch
+
 " Airline Theme
 set laststatus=2
 let g:airline_theme='wombat'
