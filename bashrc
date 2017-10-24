@@ -83,6 +83,10 @@ export LSCOLORS=Bhfgcxdxbxegedabagacad
    alias grep='grep --color=auto'
    alias fgrep='fgrep --color=auto'
    alias egrep='egrep --color=auto'
+
+   # Useful if tree is not installed
+   alias myTree='find . | sed -e "s/[^-][^\/]*\//  |/g" -e "s/|\([^ ]\)/|-\1/"'
+
 # fi
 
 # Add an "alert" alias for long running commands.  Use like so:
