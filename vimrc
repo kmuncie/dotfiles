@@ -1,4 +1,5 @@
 " VIM Config - Kevin Muncie
+" http://vimhelp.appspot.com/
 
 " -- Display
 set title
@@ -6,7 +7,6 @@ set number
 set ruler " Cursor position
 set wrap " Wrap lines
 
-set t_Co=256
 set guioptions=T " Enable the toolbar
 set showcmd
 set ttimeoutlen=50
@@ -20,12 +20,15 @@ highlight ColorColumn ctermbg=1
 
 " -- Text editing preferences
 set autoindent
-set smartindent
-set expandtab
+filetype plugin indent on
+
+" https://www.reddit.com/r/vim/wiki/tabstop
+set tabstop=8
 set softtabstop=3
 set shiftwidth=3
+set expandtab
+
 set showmatch
-filetype plugin on
 set omnifunc=syntaxcomplete#Complete
 
 " -- Search preferences
@@ -38,61 +41,37 @@ let g:airline_theme='wombat'
 let g:airline#extensions#tabline#enabled = 1
 let g:airline_powerline_fonts = 1
 
-"if !exists('g:airline_symbols')
-   "let g:airline_symbols = {}
-"endif
-
-" unicode symbols
-"let g:airline_left_sep = '»'
-"let g:airline_left_sep = '▶'
-"let g:airline_right_sep = '«'
-"let g:airline_right_sep = '◀'
-"let g:airline_symbols.linenr = '␊'
-"let g:airline_symbols.linenr = '␤'
-"let g:airline_symbols.linenr = '¶'
-"let g:airline_symbols.branch = '⎇'
-"let g:airline_symbols.paste = 'ρ'
-"let g:airline_symbols.paste = 'Þ'
-"let g:airline_symbols.paste = '∥'
-"let g:airline_symbols.whitespace = 'Ξ'
-
-" airline symbols
-"let g:airline_left_sep = ''
-"let g:airline_left_alt_sep = ''
-"let g:airline_right_sep = ''
-"let g:airline_right_alt_sep = ''
-"let g:airline_symbols.branch = ''
-"let g:airline_symbols.readonly = ''
-"let g:airline_symbols.linenr = ''
-
+" ------------------------
 " -- Key Mappings
-"
+" ------------------------
+
 " Hit <leader> (should be \) + s to reload config after saving
-map <leader>s :source ~/.vimrc<CR>
+noremap <leader>s :source ~/.vimrc<CR>
+
 " Hit ii to exit insert mode
-map ii <Esc>
-imap ii <Esc>
+noremap ii <Esc>
+inoremap ii <Esc>
 
 " Paste Toggle
-nnoremap <F2> :set invpaste paste?<CR>
+noremap <F2> :set invpaste paste?<CR>
 set pastetoggle=<F2>
 set showmode
 
 " Toggle between absolute and relative line numbering
 " Enables relative numbers.
-function! EnableRelativeNumbers()
+function! EnableRelativeNumbers() abort
   set number
   set relativenumber
-endfunc
+endfunction
 
 " Disables relative numbers.
-function! DisableRelativeNumbers()
+function! DisableRelativeNumbers() abort
   set number
   set norelativenumber
-endfunc
+endfunction
 
 " NumberToggle toggles between relative and absolute line numbers
-function! NumberToggle()
+function! NumberToggle() abort
   if(&relativenumber == 1)
     call DisableRelativeNumbers()
     let g:relativemode = 0
@@ -100,12 +79,12 @@ function! NumberToggle()
     call EnableRelativeNumbers()
     let g:relativemode = 1
   endif
-endfunc
+endfunction
 
 nnoremap <C-n> :call NumberToggle()<cr>
 
 " Removes trailing spaces
-function! StripTrailingWhitespace()
+function! StripTrailingWhitespace() abort
    normal mZ
    let l:chars = col("$")
    %s/\s\+$//e
@@ -126,18 +105,20 @@ autocmd BufWritePre * call StripTrailingWhitespace()
 " Set .md files to have proper markdown syntax highlighting
 autocmd BufNewFile,BufFilePre,BufRead *.md set filetype=markdown
 
-" Disable arrow keys
-map <up> <nop>
-map <down> <nop>
-map <left> <nop>
-map <right> <nop>
-imap <up> <nop>
-imap <down> <nop>
-imap <left> <nop>
-imap <right> <nop>
+" Disable arrow keys in Normal, Visual, and Operator-pending modes
+noremap <up> <nop>
+noremap <down> <nop>
+noremap <left> <nop>
+noremap <right> <nop>
+" Disable arrow keys in Insert mode
+inoremap <up> <nop>
+inoremap <down> <nop>
+inoremap <left> <nop>
+inoremap <right> <nop>
 
-
+" ------------------------------------------------------------
 " vim-plug plugin manager https://github.com/junegunn/vim-plug
+" ------------------------------------------------------------
 
 call plug#begin()
 
