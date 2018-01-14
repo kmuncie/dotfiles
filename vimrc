@@ -20,7 +20,6 @@ highlight ColorColumn ctermbg=1
 
 " -- Text editing preferences
 set autoindent
-filetype plugin indent on
 
 " https://www.reddit.com/r/vim/wiki/tabstop
 set tabstop=8
