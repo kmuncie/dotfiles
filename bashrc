@@ -88,6 +88,10 @@ export LS_COLORS='di=34;47:ln=36;40:so=32:pi=33:ex=31:bd=34;46:cd=34;43:su=30;41
    # Useful if tree is not installed
    alias myTree='find . | sed -e "s/[^-][^\/]*\//  |/g" -e "s/|\([^ ]\)/|-\1/"'
 
+   alias n='echo "Node: $(node --version)"; echo "NPM:  $(npm --version)"'
+
+   alias tmux='TERM=screen-256color tmux'
+
 # fi
 
 # Add an "alert" alias for long running commands.  Use like so:
