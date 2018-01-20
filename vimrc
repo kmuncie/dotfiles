@@ -11,6 +11,7 @@ set guioptions=T " Enable the toolbar
 set showcmd
 set ttimeoutlen=50
 
+set term=screen-256color "Setting this because of Windows Windows Subsystem for Linux
 colorscheme gruvbox " Custom color scheme in /vim folder
 let g:gruvbox_contrast_dark = 'hard'
 set background=dark " Applied to gruvbox color scheme set above
