@@ -55,7 +55,7 @@ fi
 unset color_prompt force_color_prompt
 
 # Custom Colors from bashrcgenerator.com
-export PS1="\[\033[38;5;233m\]\u\[$(tput sgr0)\]\[\033[38;5;238m\]@\[$(tput sgr0)\]\[\033[38;5;088m\]\h \[$(tput sgr0)\]\[\033[38;5;18m\][\D{%r}] \[$(tput sgr0)\]\[\033[38;5;054m\]\w\[$(tput sgr0)\]\[\033[38;5;252m\]\n\\$\[$(tput sgr0)\]\[\033[38;5;15m\] \[$(tput sgr0)\]"
+# export PS1="\[\033[38;5;233m\]\u\[$(tput sgr0)\]\[\033[38;5;238m\]@\[$(tput sgr0)\]\[\033[38;5;088m\]\h \[$(tput sgr0)\]\[\033[38;5;18m\][\D{%r}] \[$(tput sgr0)\]\[\033[38;5;054m\]\w\[$(tput sgr0)\]\[\033[38;5;252m\]\n\\$\[$(tput sgr0)\]\[\033[38;5;15m\] \[$(tput sgr0)\]"
 
 # If this is an xterm set the title to user@host:dir
 case "$TERM" in
