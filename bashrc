@@ -134,9 +134,13 @@ fi
 
 export PATH="/usr/local/opt/coreutils/libexec/gnubin:$PATH"
 
-#if [ -f ~/dotfiles/.git-autocomplete.sh ]; then
-#  . ~/dotfiles/.git-autocomplete.sh
-#fi
+# Setup Go PATH variables https://linode.com/docs/development/go/install-go-on-ubuntu/
+export GOPATH=$HOME/go
+export PATH=$PATH:/usr/local/go/bin:$GOPATH/bin
+
+if [ -f ~/dotfiles/.git-autocomplete.sh ]; then
+  . ~/dotfiles/.git-autocomplete.sh
+fi
 
 
 # Custom aliases
