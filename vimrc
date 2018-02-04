@@ -97,8 +97,6 @@ endfunction
 nnoremap <silent> <F5> :let _s=@/ <Bar> call StripTrailingWhitespace() <Bar> :let @/=_s <Bar> :nohl <Bar> :unlet _s <CR>
 " Comment a line at any time
 autocmd FileType scss,javascript nnoremap <buffer> <localleader>c I//<esc>
-" Set nowrap on HTML files
-autocmd BufNewFile,BufRead *.html setlocal nowrap
 " Remove trailing write space on save
 autocmd BufWritePre * call StripTrailingWhitespace()
 " Set .md files to have proper markdown syntax highlighting
