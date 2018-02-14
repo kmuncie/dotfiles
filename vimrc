@@ -101,6 +101,8 @@ autocmd FileType scss,javascript nnoremap <buffer> <localleader>c I//<esc>
 autocmd BufWritePre * call StripTrailingWhitespace()
 " Set .md files to have proper markdown syntax highlighting
 autocmd BufNewFile,BufFilePre,BufRead *.md set filetype=markdown
+" Set Silverstripe template files (.ss) to use xhtml syntax highlighting
+autocmd BufNewFile,BufRead *.ss set filetype=xhtml
 
 " Disable arrow keys in Normal, Visual, and Operator-pending modes
 noremap <up> <nop>
