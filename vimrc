@@ -17,6 +17,12 @@ set background=dark " Applied to gruvbox color scheme set above
 set colorcolumn=140
 highlight ColorColumn ctermbg=1
 
+" use 256 colors in Console mode if we think the terminal supports it
+if &term =~? 'mlterm\|xterm'
+   set background=dark " Applied to gruvbox color scheme set above
+   set t_Co=256
+endif
+
 " -- Text editing preferences
 set autoindent
 
@@ -114,6 +120,24 @@ inoremap <up> <nop>
 inoremap <down> <nop>
 inoremap <left> <nop>
 inoremap <right> <nop>
+
+" Switch to English - mapping
+nmap <Leader>e :<C-U>call EngType()<CR>
+" Switch to Arabic - mapping
+nmap <Leader>a :<C-U>call AraType()<CR>
+
+" Switch to English - function
+function! EngType()
+" To switch back from Arabic
+  set keymap= " Restore default (US) keyboard layout
+  set norightleft
+endfunction
+
+" Switch to Arabic - function
+function! AraType()
+    set keymap=arabic-pc "Modified keymap. File in ~/.vim/keymap/
+    set rightleft
+endfunction
 
 " ------------------------------------------------------------
 " vim-plug plugin manager https://github.com/junegunn/vim-plug
