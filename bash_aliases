@@ -11,3 +11,5 @@ alias ~="cd ~"                              # ~:            Go Home
 alias c='clear'                             # c:            Clear terminal display
 
 alias neofetch='neofetch --config ~/dotfiles/neofetch.conf'
+
+alias weather='curl wttr.in/10987'
