@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 
 echo "Loading ${HOME}/.bash_profile"
-# source ~/.profile # get my PATH setup
-export PATH=/usr/bin/python:$PATH
-source ~/.bashrc  # get my Bash aliases
 
-test -e "${HOME}/.iterm2_shell_integration.bash" && source "${HOME}/.iterm2_shell_integration.bash"
+if [ -f ~/.bashrc ]; then
+    source ~/.bashrc
+fi
+
 
