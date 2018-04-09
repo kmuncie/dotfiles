@@ -273,9 +273,9 @@
 	<key>NSWindow Frame ProfilesPanel</key>
 	<string>1318 941 735 382 0 0 2560 1418 </string>
 	<key>NSWindow Frame SharedPreferences</key>
-	<string>1075 735 918 494 0 0 2560 1418 </string>
+	<string>1075 1006 918 394 0 0 2560 1418 </string>
 	<key>NSWindow Frame iTerm Window 0</key>
-	<string>254 816 1704 588 0 0 2560 1418 </string>
+	<string>254 49 1210 1369 0 0 2560 1418 </string>
 	<key>NSWindow Frame iTerm Window 1</key>
 	<string>12 315 1569 996 0 0 2560 1418 </string>
 	<key>New Bookmarks</key>
@@ -284,7 +284,7 @@
 			<key>ASCII Anti Aliased</key>
 			<true/>
 			<key>ASCII Ligatures</key>
-			<true/>
+			<false/>
 			<key>Ambiguous Double Width</key>
 			<false/>
 			<key>Ansi 0 Color</key>
@@ -468,7 +468,7 @@
 			<key>Blur</key>
 			<true/>
 			<key>Blur Radius</key>
-			<real>0.85888324873096333</real>
+			<real>2.5284263959390851</real>
 			<key>Bold Color</key>
 			<dict>
 				<key>Blue Component</key>
@@ -912,7 +912,7 @@
 			<key>Thin Strokes</key>
 			<integer>3</integer>
 			<key>Transparency</key>
-			<real>0.33912396890862945</real>
+			<real>0.08785493337563452</real>
 			<key>Unlimited Scrollback</key>
 			<false/>
 			<key>Use Bold Font</key>
@@ -999,7 +999,7 @@
 	<key>SUHasLaunchedBefore</key>
 	<true/>
 	<key>SULastCheckTime</key>
-	<date>2018-03-22T23:25:15Z</date>
+	<date>2018-04-08T23:25:05Z</date>
 	<key>SUSendProfileInfo</key>
 	<false/>
 	<key>TabStyle</key>
@@ -1013,7 +1013,7 @@
 	<key>findMode_iTerm</key>
 	<integer>0</integer>
 	<key>iTerm Version</key>
-	<string>3.2.20180323-nightly</string>
+	<string>3.1.5</string>
 	<key>kCPKSelectionViewPreferredModeKey</key>
 	<integer>0</integer>
 	<key>kCPKSelectionViewShowHSBTextFieldsKey</key>

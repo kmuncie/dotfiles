@@ -51,12 +51,19 @@ let g:airline_powerline_fonts = 1
 " -- Key Mappings
 " ------------------------
 
+" Open vimrc in split for quick changes
+nnoremap <leader>ev :vsplit $MYVIMRC<cr>
+
 " Hit <leader> (should be \) + s to reload config after saving
-noremap <leader>s :source ~/.vimrc<CR>
+noremap <leader>sv :source ~/.vimrc<CR>
 
 " Hit ii to exit insert mode
 noremap ii <Esc>
 inoremap ii <Esc>
+
+" Line movements
+nnoremap H ^
+nnoremap L $
 
 " Paste Toggle
 noremap <F2> :set invpaste paste?<CR>
