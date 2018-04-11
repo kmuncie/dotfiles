@@ -1,7 +1,9 @@
 " VIM Config - Kevin Muncie
 " http://vimhelp.appspot.com/
+" http://learnvimscriptthehardway.stevelosh.com/
+" Use `za` to toggle code folding at cursor location
 
-" -- Display
+" Core Display Configuration ---------------------- {{{
 set title
 set number
 set ruler " Cursor position
@@ -10,18 +12,6 @@ set wrap " Wrap lines
 set guioptions=T " Enable the toolbar
 set showcmd
 set ttimeoutlen=50
-
-colorscheme gruvbox " Custom color scheme in /vim folder
-let g:gruvbox_contrast_dark = 'hard'
-set background=dark " Applied to gruvbox color scheme set above
-set colorcolumn=140
-highlight ColorColumn ctermbg=1
-
-" use 256 colors in Console mode if we think the terminal supports it
-if &term =~? 'mlterm\|xterm'
-   set background=dark " Applied to gruvbox color scheme set above
-   set t_Co=256
-endif
 
 " -- Text editing preferences
 set autoindent
@@ -39,37 +29,74 @@ set omnifunc=syntaxcomplete#Complete
 set incsearch
 set hlsearch
 
-" Airline Theme
+" }}}
+
+" Core Theming ---------------------------------- {{{
+colorscheme gruvbox " Custom color scheme in /vim folder
+let g:gruvbox_contrast_dark = 'hard'
+set background=dark " Applied to gruvbox color scheme set above
+set colorcolumn=140
+highlight ColorColumn ctermbg=1
+
+" use 256 colors in Console mode if we think the terminal supports it
+if &term =~? 'mlterm\|xterm'
+   set background=dark " Applied to gruvbox color scheme set above
+   set t_Co=256
+endif
+
+" }}}
+
+" Airline Theme Settings ----------------- {{{
 set laststatus=2
 let g:airline_theme='wombat'
 let g:airline#extensions#tabline#enabled = 1
 let g:airline#extensions#tabline#formatter = 'unique_tail'
 let g:airline_powerline_fonts = 1
 
+" }}}
 
-" ------------------------
-" -- Key Mappings
-" ------------------------
+" Key Mappings ----------------------- {{{
 
 " Open vimrc in split for quick changes
 nnoremap <leader>ev :vsplit $MYVIMRC<cr>
 
 " Hit <leader> (should be \) + s to reload config after saving
-noremap <leader>sv :source ~/.vimrc<CR>
+nnoremap <leader>sv :source ~/.vimrc<CR>
 
 " Hit ii to exit insert mode
-noremap ii <Esc>
+nnoremap ii <Esc>
 inoremap ii <Esc>
 
 " Line movements
 nnoremap H ^
 nnoremap L $
 
-" Paste Toggle
-noremap <F2> :set invpaste paste?<CR>
-set pastetoggle=<F2>
-set showmode
+" Operator-pending mappings
+" <operator> inside next/last <bracket-type>
+onoremap in( :<c-u>normal! f(vi(<cr>
+onoremap il( :<c-u>normal! F(vi(<cr>
+onoremap in{ :<c-u>normal! f{vi{<cr>
+onoremap il{ :<c-u>normal! F{vi{<cr>
+onoremap in[ :<c-u>normal! f[vi[<cr>
+onoremap il[ :<c-u>normal! F[vi[<cr>
 
+" Paste Toggle
+nnoremap <F2> :set invpaste paste?<CR>
+
+" Disable arrow keys in Normal, Visual, and Operator-pending modes
+noremap <up> <nop>
+noremap <down> <nop>
+noremap <left> <nop>
+noremap <right> <nop>
+" Disable arrow keys in Insert mode
+inoremap <up> <nop>
+inoremap <down> <nop>
+inoremap <left> <nop>
+inoremap <right> <nop>
+
+" }}}
+
+" Functions (Line Numbering, Strip Whitespace) ----------------- {{{
 " Toggle between absolute and relative line numbering
 " Enables relative numbers.
 function! EnableRelativeNumbers() abort
@@ -109,25 +136,44 @@ endfunction
 
 " Hit F5 to clear trailing whitespace at any time
 nnoremap <silent> <F5> :let _s=@/ <Bar> call StripTrailingWhitespace() <Bar> :let @/=_s <Bar> :nohl <Bar> :unlet _s <CR>
-" Comment a line at any time
-autocmd FileType scss,javascript nnoremap <buffer> <localleader>c I//<esc>
-" Remove trailing write space on save
-autocmd BufWritePre * call StripTrailingWhitespace()
-" Set .md files to have proper markdown syntax highlighting
-autocmd BufNewFile,BufFilePre,BufRead *.md set filetype=markdown
-" Set Silverstripe template files (.ss) to use xhtml syntax highlighting
-autocmd BufNewFile,BufRead *.ss set filetype=xhtml
 
-" Disable arrow keys in Normal, Visual, and Operator-pending modes
-noremap <up> <nop>
-noremap <down> <nop>
-noremap <left> <nop>
-noremap <right> <nop>
-" Disable arrow keys in Insert mode
-inoremap <up> <nop>
-inoremap <down> <nop>
-inoremap <left> <nop>
-inoremap <right> <nop>
+" }}}
+
+" Autocommands ------------------ {{{
+
+" vimrc code folding when three curly braces are on a line
+augroup filetype_vim
+    autocmd!
+    autocmd FileType vim setlocal foldmethod=marker
+augroup END
+
+" Comment a line at any time
+augroup comment_line
+   autocmd!
+   autocmd FileType scss,javascript nnoremap <buffer> <localleader>c I//<esc>
+augroup END
+
+" Remove trailing write space on save
+augroup white_space
+   autocmd!
+   autocmd BufWritePre * call StripTrailingWhitespace()
+augroup END
+
+" Set .md files to have proper markdown syntax highlighting
+augroup markdown
+   autocmd!
+   autocmd BufNewFile,BufFilePre,BufRead *.md set filetype=markdown
+augroup END
+
+" Set Silverstripe template files (.ss) to use xhtml syntax highlighting
+augroup silverstripe
+   autocmd!
+   autocmd BufNewFile,BufRead *.ss set filetype=xhtml
+augroup END
+
+" }}}
+
+" Arabic/English Quick Switching ------------------- {{{
 
 " Switch to English - mapping
 nmap <Leader>e :<C-U>call EngType()<CR>
@@ -147,9 +193,9 @@ function! AraType()
     set rightleft
 endfunction
 
-" ------------------------------------------------------------
-" vim-plug plugin manager https://github.com/junegunn/vim-plug
-" ------------------------------------------------------------
+" }}}
+
+" vim-plug plugin manager https://github.com/junegunn/vim-plug ---- {{{
 
 call plug#begin()
 
@@ -174,3 +220,4 @@ let g:ctrlp_use_caching = 1
 let g:ctrlp_user_command = ['.git/', 'git --git-dir=%s/.git ls-files -oc --exclude-standard']
 let g:rainbow_active = 1 "0 if you want to enable it later via :RainbowToggle
 
+" }}}
