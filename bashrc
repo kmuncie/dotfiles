@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
 
-echo "Loading ${HOME}/.bashrc"
-
 # Get my great aliases
 if [ -f ~/.bash_aliases ]; then
    . ~/.bash_aliases
