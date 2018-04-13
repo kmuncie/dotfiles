@@ -81,7 +81,8 @@ onoremap in[ :<c-u>normal! f[vi[<cr>
 onoremap il[ :<c-u>normal! F[vi[<cr>
 
 " Paste Toggle
-nnoremap <F2> :set invpaste paste?<CR>
+noremap <F2> :set invpaste paste?<CR>
+set pastetoggle=<F2>
 
 " Disable arrow keys in Normal, Visual, and Operator-pending modes
 noremap <up> <nop>
