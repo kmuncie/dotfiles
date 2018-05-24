@@ -7,6 +7,8 @@ alias ll='ls -alF --color=auto'
 alias la='ls -A --color=auto'
 alias l='ls -CF'
 
+alias git='time git'
+
 alias ag='ag --pager="less -r"'
 alias grep='grep --color=auto'
 alias fgrep='fgrep --color=auto'
