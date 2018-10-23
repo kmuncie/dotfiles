@@ -29,6 +29,9 @@ set omnifunc=syntaxcomplete#Complete
 set incsearch
 set hlsearch
 
+" Mac Clipboard Support
+set clipboard=unnamed
+
 " }}}
 
 " Core Theming ---------------------------------- {{{
@@ -124,6 +127,7 @@ endfunction
 
 nnoremap <C-n> :call NumberToggle()<cr>
 
+
 " Removes trailing spaces
 function! StripTrailingWhitespace() abort
    normal mZ
@@ -214,6 +218,8 @@ function! AraType()
 endfunction
 
 " }}}
+
+command! -nargs=* -complete=shellcmd R new | setlocal buftype=nofile bufhidden=hide noswapfile | r !<args>
 
 " vim-plug plugin manager https://github.com/junegunn/vim-plug ---- {{{
 
