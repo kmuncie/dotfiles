@@ -72,9 +72,9 @@ export PATH="/usr/local/opt/coreutils/libexec/gnubin:$PATH"
 export GOPATH=$HOME/go
 export PATH=$PATH:/usr/local/go/bin:$GOPATH/bin
 
-# if [ -f ~/dotfiles/.git-autocomplete.sh ]; then
-#   . ~/dotfiles/.git-autocomplete.sh
-# fi
+if [ -f ~/dotfiles/.git-autocomplete.sh ]; then
+   . ~/dotfiles/.git-autocomplete.sh
+fi
 
 export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
