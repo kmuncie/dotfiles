@@ -50,6 +50,20 @@ rmcache () {
    popd
 }
 
+preload() {
+   SEGMENTS='/en'
+   if [ "$1" != "" ]; then
+      SEGMENTS="$1"
+   fi
+   URLPATH="/$(whoami)${SEGMENTS}"
+   echo "Requesting ${URLPATH}"
+   while [ "$(curl -w "%{http_code}" -o /dev/null "http://localhost:8080${URLPATH}")" != "200" ]; do
+      sleep 0.1
+      echo "Requesting ${URLPATH}"
+   done;
+   printf "\a"
+}
+
 # enable programmable completion features (you don't need to enable
 # this, if it's already enabled in /etc/bash.bashrc and /etc/profile
 # sources /etc/bash.bashrc).
