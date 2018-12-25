@@ -89,6 +89,8 @@ export PATH=$PATH:/usr/local/go/bin:$GOPATH/bin
 if [ -f ~/dotfiles/.git-autocomplete.sh ]; then
    . ~/dotfiles/.git-autocomplete.sh
 fi
+# Setup Flutter PATH variable
+export PATH=$PATH:/home/kmuncie/flutter/bin
 
 export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
@@ -101,3 +103,10 @@ export PATH=${PATH}:./node_modules/.bin
 # tabtab source for sls package
 # uninstall by removing these lines or running `tabtab uninstall sls`
 [ -f /Users/kmuncie/.nvm/versions/node/v6.10.3/lib/node_modules/serverless/node_modules/tabtab/.completions/sls.bash ] && . /Users/kmuncie/.nvm/versions/node/v6.10.3/lib/node_modules/serverless/node_modules/tabtab/.completions/sls.bash
+
+# tabtab source for serverless package
+# uninstall by removing these lines or running `tabtab uninstall serverless`
+[ -f /home/kmuncie/.nvm/versions/node/v9.4.0/lib/node_modules/serverless/node_modules/tabtab/.completions/serverless.bash ] && . /home/kmuncie/.nvm/versions/node/v9.4.0/lib/node_modules/serverless/node_modules/tabtab/.completions/serverless.bash
+# tabtab source for sls package
+# uninstall by removing these lines or running `tabtab uninstall sls`
+[ -f /home/kmuncie/.nvm/versions/node/v9.4.0/lib/node_modules/serverless/node_modules/tabtab/.completions/sls.bash ] && . /home/kmuncie/.nvm/versions/node/v9.4.0/lib/node_modules/serverless/node_modules/tabtab/.completions/sls.bash

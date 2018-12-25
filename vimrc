@@ -158,6 +158,14 @@ function! EnglishSplitBlog() abort
    endfor
 endfunction
 
+function! PhoSplitBlog() abort
+   for lnum in range(a:lastline, a:firstline, -1)
+      let words = split(getline(lnum))
+      let words_transformed = map(copy(words), '"{{< word \"\" \"\" \"" . v:val . "\" >}}"')
+      execute lnum . "delete"
+      call append(lnum-1, words_transformed)
+   endfor
+endfunction
 " Hit F5 to clear trailing whitespace at any time
 nnoremap <silent> <F5> :let _s=@/ <Bar> call StripTrailingWhitespace() <Bar> :let @/=_s <Bar> :nohl <Bar> :unlet _s <CR>
 
