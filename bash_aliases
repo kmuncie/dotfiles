@@ -3,7 +3,7 @@ export EDITOR='vim'
 # enable color support of ls and also add handy aliases
 alias ls='ls --color=auto'
 alias dir='dir --color=auto'
-alias ll='ls -alF --color=auto'
+alias ll='ls -halF --color=auto'
 alias la='ls -A --color=auto'
 alias l='ls -CF'
 
