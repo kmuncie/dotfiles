@@ -5,6 +5,9 @@ if [ -f ~/.bash_aliases ]; then
    . ~/.bash_aliases
 fi
 
+# Stop KDE ksshaskpass from running
+unset SSH_ASKPASS
+
 # If not running interactively, don't do anything
 [ -z "$PS1" ] && return
 
@@ -15,8 +18,8 @@ HISTCONTROL=ignoreboth
 shopt -s histappend
 
 # for setting history length see HISTSIZE and HISTFILESIZE in bash(1)
-HISTSIZE=1000
-HISTFILESIZE=2000
+HISTSIZE=5000
+HISTFILESIZE=10000
 
 # check the window size after each command and, if necessary,
 # update the values of LINES and COLUMNS.
@@ -70,6 +73,7 @@ preload() {
 if [ -f /etc/bash_completion ] && ! shopt -oq posix; then
    . /etc/bash_completion
 fi
+
 # Mac bash completion
 if [ -f $(brew --prefix)/etc/bash_completion ]; then
    . $(brew --prefix)/etc/bash_completion
