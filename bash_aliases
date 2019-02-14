@@ -1,3 +1,5 @@
+echo "Loading ${HOME}/.bash_aliases"
+
 export EDITOR='vim'
 
 # enable color support of ls and also add handy aliases
