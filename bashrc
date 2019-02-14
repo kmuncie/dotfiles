@@ -46,6 +46,13 @@ export LS_COLORS='di=34;47:ln=36;40:so=32:pi=33:ex=31:bd=34;46:cd=34;43:su=30;41
 
 test -e "${HOME}/.iterm2_shell_integration.bash" && source "${HOME}/.iterm2_shell_integration.bash"
 
+# From JT
+showSiteCert ()
+{
+   SITE="$1";
+   openssl s_client -showcerts -servername "${SITE}" -connect "${SITE}":443 2> /dev/null < /dev/null
+}
+
 rmcache () {
    pushd ~/jworg-cs/content-core/
    rm -rf ~/jworg-cs/.sscache/* ~/jworg-cs/.sscache/.cache*
