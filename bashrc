@@ -113,3 +113,7 @@ echo "Serverless completions"
 # uninstall by removing these lines or running `tabtab uninstall sls`
 [ -f /home/kmuncie/.nvm/versions/node/v9.4.0/lib/node_modules/serverless/node_modules/tabtab/.completions/sls.bash ] && . /home/kmuncie/.nvm/versions/node/v9.4.0/lib/node_modules/serverless/node_modules/tabtab/.completions/sls.bash
 
+
+# tabtab source for slss package
+# uninstall by removing these lines or running `tabtab uninstall slss`
+[ -f /home/kmuncie/.nvm/versions/node/v9.4.0/lib/node_modules/serverless/node_modules/tabtab/.completions/slss.bash ] && . /home/kmuncie/.nvm/versions/node/v9.4.0/lib/node_modules/serverless/node_modules/tabtab/.completions/slss.bash

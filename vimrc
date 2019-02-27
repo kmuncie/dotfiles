@@ -34,6 +34,11 @@ set hlsearch
 " Mac Clipboard Support
 set clipboard=unnamed
 
+" Highlight nonascii characters
+" https://stackoverflow.com/questions/16987362/how-to-get-vim-to-highlight-non-asc
+syntax match nonascii "[^\x00-\x7F]"
+highlight nonascii guibg=Red ctermbg=2
+
 " }}}
 
 " Core Theming ---------------------------------- {{{
