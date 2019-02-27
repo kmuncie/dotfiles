@@ -8,6 +8,8 @@ set title
 set number
 set ruler " Cursor position
 set wrap " Wrap lines
+set textwidth=0
+set wrapmargin=0
 
 set guioptions=T " Enable the toolbar
 set showcmd
@@ -38,8 +40,12 @@ set clipboard=unnamed
 colorscheme gruvbox " Custom color scheme in /vim folder
 let g:gruvbox_contrast_dark = 'hard'
 set background=dark " Applied to gruvbox color scheme set above
-set colorcolumn=140
-highlight ColorColumn ctermbg=1
+
+autocmd FileType gitcommit set textwidth=90
+" Colour the 91st column so that we don’t type over our limit
+autocmd FileType gitcommit set colorcolumn=+1
+" In Git commit messages, also colour the 72nd column (for titles)
+autocmd FileType gitcommit set colorcolumn+=73
 
 " use 256 colors in Console mode if we think the terminal supports it
 if &term =~? 'mlterm\|xterm'
