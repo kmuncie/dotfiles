@@ -251,6 +251,7 @@ Plug 'tpope/vim-fugitive'
 Plug 'cakebaker/scss-syntax.vim'
 Plug 'posva/vim-vue'
 Plug 'luochen1990/rainbow'
+Plug 'mileszs/ack.vim'
 call plug#end()
 
 let g:ctrlp_clear_cache_on_exit = 0
