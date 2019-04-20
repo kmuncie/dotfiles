@@ -160,14 +160,26 @@ function! ArabicSplitBlog() abort
    endfor
 endfunction
 
+" Insert wrapping paragraph for Arabic stacked text, move cursor inside
+function! StackedStart() abort
+   let s:line=line(".")
+   let html = "<p class=\"stackedTextContainer\" dir=\"rtl\" lang=\"ar\" xml:lang=\"ar\">\n\n</p>"
+   let finalHtml = split(html, "\n")
+   call append(s:line, finalHtml)
+   normal! 2j
+endfunction
+
+" Thanks to Reddit u/duppy-ta for help with this
+" https://www.reddit.com/r/vim/comments/bemdz2/custom_function_inserting_a_new_line_within_text/
 function! ArabicSplitHTML() abort
    for lnum in range(a:lastline, a:firstline, -1)
       let words = split(getline(lnum))
-      let htmlOne = "<span class=\"stackedText\"><span class=\"translatedText\" dir=\"ltr\" lang=\"en\" xml:lang=\"en\"></span><span class=\"vernacularText\">"
-      let htmlTwo = "</span><span class=\"phoneticText\" dir=\"ltr\" lang=\"en\" xml:lang=\"en\"></span></span>"
+      let htmlOne = "<span class=\"stackedText\">\n<span class=\"translatedText\" dir=\"ltr\" lang=\"en\" xml:lang=\"en\"></span>\n<span class=\"vernacularText\">"
+      let htmlTwo = "</span>\n<span class=\"phoneticText\" dir=\"ltr\" lang=\"en\" xml:lang=\"en\"></span>\n</span>"
       let words_transformed = map(copy(words), 'htmlOne . v:val . htmlTwo')
+      let all_lines = split(join(words_transformed, "\n"), "\n")
       execute lnum . "delete"
-      call append(lnum-1, words_transformed)
+      call append(lnum-1, all_lines)
    endfor
 endfunction
 
