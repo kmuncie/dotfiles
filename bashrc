@@ -97,23 +97,3 @@ preload() {
 #    . $(brew --prefix)/etc/bash_completion
 # fi
 
-echo "Serverless completions"
-
-# tabtab source for serverless package
-# uninstall by removing these lines or running `tabtab uninstall serverless`
-[ -f /Users/kmuncie/.nvm/versions/node/v6.10.3/lib/node_modules/serverless/node_modules/tabtab/.completions/serverless.bash ] && . /Users/kmuncie/.nvm/versions/node/v6.10.3/lib/node_modules/serverless/node_modules/tabtab/.completions/serverless.bash
-# tabtab source for sls package
-# uninstall by removing these lines or running `tabtab uninstall sls`
-[ -f /Users/kmuncie/.nvm/versions/node/v6.10.3/lib/node_modules/serverless/node_modules/tabtab/.completions/sls.bash ] && . /Users/kmuncie/.nvm/versions/node/v6.10.3/lib/node_modules/serverless/node_modules/tabtab/.completions/sls.bash
-
-# tabtab source for serverless package
-# uninstall by removing these lines or running `tabtab uninstall serverless`
-[ -f /home/kmuncie/.nvm/versions/node/v9.4.0/lib/node_modules/serverless/node_modules/tabtab/.completions/serverless.bash ] && . /home/kmuncie/.nvm/versions/node/v9.4.0/lib/node_modules/serverless/node_modules/tabtab/.completions/serverless.bash
-# tabtab source for sls package
-# uninstall by removing these lines or running `tabtab uninstall sls`
-[ -f /home/kmuncie/.nvm/versions/node/v9.4.0/lib/node_modules/serverless/node_modules/tabtab/.completions/sls.bash ] && . /home/kmuncie/.nvm/versions/node/v9.4.0/lib/node_modules/serverless/node_modules/tabtab/.completions/sls.bash
-
-
-# tabtab source for slss package
-# uninstall by removing these lines or running `tabtab uninstall slss`
-[ -f /home/kmuncie/.nvm/versions/node/v9.4.0/lib/node_modules/serverless/node_modules/tabtab/.completions/slss.bash ] && . /home/kmuncie/.nvm/versions/node/v9.4.0/lib/node_modules/serverless/node_modules/tabtab/.completions/slss.bash
