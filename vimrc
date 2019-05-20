@@ -60,12 +60,26 @@ endif
 
 " }}}
 
-" Airline Theme Settings ----------------- {{{
+" Crystalline Theme Settings ----------------- {{{
+function! StatusLine(current)
+  return (a:current ? crystalline#mode() . '%#Crystalline#' : '%#CrystallineInactive#')
+        \ . ' %f%h%w%m%r '
+        \ . (a:current ? '%#CrystallineFill# %{fugitive#head()} ' : '')
+        \ . '%=' . (a:current ? '%#Crystalline# %{&paste?"PASTE ":""}%{&spell?"SPELL ":""}' . crystalline#mode_color() : '')
+        \ . ' %{&ft}[%{&enc}][%{&ffs}] %l/%L %c%V %P '
+endfunction
+
+function! TabLine()
+  let l:vimlabel = has("nvim") ?  " NVIM " : " VIM "
+  return crystalline#bufferline(2, len(l:vimlabel), 1) . '%=%#CrystallineTab# ' . l:vimlabel
+endfunction
+
+let g:crystalline_statusline_fn = 'StatusLine'
+let g:crystalline_tabline_fn = 'TabLine'
+let g:crystalline_theme = 'gruvbox'
+
+set showtabline=2
 set laststatus=2
-let g:airline_theme='wombat'
-let g:airline#extensions#tabline#enabled = 1
-let g:airline#extensions#tabline#formatter = 'unique_tail'
-let g:airline_powerline_fonts = 1
 
 " }}}
 
@@ -271,9 +285,8 @@ call plug#begin()
 Plug 'ctrlpvim/ctrlp.vim'
 " File Tree Viewer
 Plug 'scrooloose/nerdtree', { 'on': 'NERDTreeToggle' }
-" vim-ailine
-Plug 'vim-airline/vim-airline'
-Plug 'vim-airline/vim-airline-themes'
+Plug 'morhetz/gruvbox'
+Plug 'rbong/vim-crystalline'
 Plug 'edkolev/tmuxline.vim'
 Plug 'tpope/vim-fugitive'
 Plug 'cakebaker/scss-syntax.vim'
