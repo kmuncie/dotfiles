@@ -3,6 +3,33 @@
 " http://learnvimscriptthehardway.stevelosh.com/
 " Use `za` to toggle code folding at cursor location
 
+" vim-plug plugin manager https://github.com/junegunn/vim-plug ---- {{{
+
+call plug#begin()
+
+" Fuzzy file finder
+Plug 'ctrlpvim/ctrlp.vim'
+" File Tree Viewer
+Plug 'scrooloose/nerdtree', { 'on': 'NERDTreeToggle' }
+Plug 'nanotech/jellybeans.vim' " Theme
+Plug 'rbong/vim-crystalline'
+Plug 'edkolev/tmuxline.vim'
+Plug 'tpope/vim-fugitive'
+Plug 'cakebaker/scss-syntax.vim'
+Plug 'posva/vim-vue'
+Plug 'luochen1990/rainbow'
+Plug 'mileszs/ack.vim'
+call plug#end()
+
+let g:ctrlp_clear_cache_on_exit = 0
+let g:ctrlp_by_filename = 1
+let g:ctrlp_use_caching = 1
+" Skip files listed in .gitignore (faster load time)
+let g:ctrlp_user_command = ['.git/', 'git --git-dir=%s/.git ls-files -oc --exclude-standard']
+let g:rainbow_active = 0 "0 if you want to enable it later via :RainbowToggle
+
+" }}}
+
 " Core Display Configuration ---------------------- {{{
 set title
 set number
@@ -42,9 +69,14 @@ highlight nonascii guibg=Red ctermbg=2
 " }}}
 
 " Core Theming ---------------------------------- {{{
-colorscheme gruvbox " Custom color scheme in /vim folder
-let g:gruvbox_contrast_dark = 'hard'
-set background=dark " Applied to gruvbox color scheme set above
+
+" use 256 colors in Console mode if we think the terminal supports it
+if &term =~? 'mlterm\|xterm'
+   set background=dark
+   set t_Co=256
+endif
+
+colorscheme jellybeans
 
 autocmd FileType gitcommit set textwidth=90
 " Colour the 91st column so that we don’t type over our limit
@@ -52,11 +84,6 @@ autocmd FileType gitcommit set colorcolumn=+1
 " In Git commit messages, also colour the 72nd column (for titles)
 autocmd FileType gitcommit set colorcolumn+=73
 
-" use 256 colors in Console mode if we think the terminal supports it
-if &term =~? 'mlterm\|xterm'
-   set background=dark " Applied to gruvbox color scheme set above
-   set t_Co=256
-endif
 
 " }}}
 
@@ -70,13 +97,12 @@ function! StatusLine(current)
 endfunction
 
 function! TabLine()
-  let l:vimlabel = has("nvim") ?  " NVIM " : " VIM "
-  return crystalline#bufferline(2, len(l:vimlabel), 1) . '%=%#CrystallineTab# ' . l:vimlabel
+   return crystalline#bufferline(0, 0, 1)
 endfunction
 
 let g:crystalline_statusline_fn = 'StatusLine'
 let g:crystalline_tabline_fn = 'TabLine'
-let g:crystalline_theme = 'gruvbox'
+let g:crystalline_theme = 'jellybeans'
 
 set showtabline=2
 set laststatus=2
@@ -275,31 +301,3 @@ endfunction
 
 " }}}
 
-command! -nargs=* -complete=shellcmd R new | setlocal buftype=nofile bufhidden=hide noswapfile | r !<args>
-
-" vim-plug plugin manager https://github.com/junegunn/vim-plug ---- {{{
-
-call plug#begin()
-
-" Fuzzy file finder
-Plug 'ctrlpvim/ctrlp.vim'
-" File Tree Viewer
-Plug 'scrooloose/nerdtree', { 'on': 'NERDTreeToggle' }
-Plug 'morhetz/gruvbox'
-Plug 'rbong/vim-crystalline'
-Plug 'edkolev/tmuxline.vim'
-Plug 'tpope/vim-fugitive'
-Plug 'cakebaker/scss-syntax.vim'
-Plug 'posva/vim-vue'
-Plug 'luochen1990/rainbow'
-Plug 'mileszs/ack.vim'
-call plug#end()
-
-let g:ctrlp_clear_cache_on_exit = 0
-let g:ctrlp_by_filename = 1
-let g:ctrlp_use_caching = 1
-" Skip files listed in .gitignore (faster load time)
-let g:ctrlp_user_command = ['.git/', 'git --git-dir=%s/.git ls-files -oc --exclude-standard']
-let g:rainbow_active = 0 "0 if you want to enable it later via :RainbowToggle
-
-" }}}

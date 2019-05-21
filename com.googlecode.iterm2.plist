@@ -299,9 +299,9 @@
 	<key>NSWindow Frame SUUpdateAlert</key>
 	<string>970 781 620 392 0 0 2560 1418 </string>
 	<key>NSWindow Frame SharedPreferences</key>
-	<string>837 669 918 452 0 0 2560 1418 </string>
+	<string>636 979 928 394 0 0 2560 1418 </string>
 	<key>NSWindow Frame iTerm Window 0</key>
-	<string>88 49 2404 1369 0 0 2560 1418 </string>
+	<string>73 73 2413 1345 0 0 2560 1418 </string>
 	<key>NSWindow Frame iTerm Window 1</key>
 	<string>12 -5 1210 1296 0 0 2560 1418 </string>
 	<key>New Bookmarks</key>
@@ -464,13 +464,13 @@
 				<key>Alpha Component</key>
 				<real>1</real>
 				<key>Blue Component</key>
-				<real>0.0019502639770507812</real>
+				<real>0.0</real>
 				<key>Color Space</key>
 				<string>sRGB</string>
 				<key>Green Component</key>
-				<real>0.03125</real>
-				<key>Red Component</key>
 				<real>0.0</real>
+				<key>Red Component</key>
+				<real>0.226531982421875</real>
 			</dict>
 			<key>Background Image Location</key>
 			<string></string>
@@ -494,7 +494,7 @@
 			<key>Blur</key>
 			<true/>
 			<key>Blur Radius</key>
-			<real>30</real>
+			<real>5.7157360406091371</real>
 			<key>Bold Color</key>
 			<dict>
 				<key>Blue Component</key>
@@ -950,7 +950,7 @@
 			<key>Thin Strokes</key>
 			<integer>2</integer>
 			<key>Transparency</key>
-			<real>0.27180956535532996</real>
+			<real>0.11647961611675128</real>
 			<key>Unicode Normalization</key>
 			<integer>0</integer>
 			<key>Unicode Version</key>
@@ -1041,7 +1041,7 @@
 	<key>SUHasLaunchedBefore</key>
 	<true/>
 	<key>SULastCheckTime</key>
-	<date>2019-03-01T14:31:41Z</date>
+	<date>2019-05-17T13:02:27Z</date>
 	<key>SUSendProfileInfo</key>
 	<false/>
 	<key>SplitPaneDimmingAmount</key>
@@ -1063,7 +1063,7 @@
 	<key>findMode_iTerm</key>
 	<integer>0</integer>
 	<key>iTerm Version</key>
-	<string>3.2.7</string>
+	<string>3.2.9</string>
 	<key>kCPKSelectionViewPreferredModeKey</key>
 	<integer>0</integer>
 	<key>kCPKSelectionViewShowHSBTextFieldsKey</key>
