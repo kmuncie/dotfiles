@@ -2,7 +2,7 @@
    name = Kevin Muncie
    email = kevin@kmuncie.com
 [alias]
-   lg = log --color --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit
+   lg = log -100 --color --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit
    lgl = log --graph --stat --abbrev-commit --decorate --format=format:'%C(bold yellow)%h%C(reset) - %C(bold green)%ar%C(reset)%C(dim green) by %C(reset)%C(bold white)%an%C(reset)%C(dim green) on %aD%C(reset)%C(bold yellow)%d%C(reset)%n''%C(white)%s%C(reset)%n' --all
    st = status -sb
    ai = add --interactive
