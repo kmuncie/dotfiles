@@ -16,14 +16,13 @@ echo "Doing random things first"
 unset SSH_ASKPASS
 
 # don't put duplicate lines in the history
-HISTCONTROL=ignoreboth
+export HISTCONTROL=ignorebothexport
+export HISTIGNORE=ls:cd:pwd:
+export HISTSIZE=10000
+export HISTFILESIZE=20000
 
 # append to the history file, don't overwrite it
 shopt -s histappend
-
-# for setting history length see HISTSIZE and HISTFILESIZE in bash(1)
-HISTSIZE=5000
-HISTFILESIZE=10000
 
 # check the window size after each command and, if necessary,
 # update the values of LINES and COLUMNS.

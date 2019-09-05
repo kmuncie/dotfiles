@@ -21,6 +21,7 @@ alias myTree='find . | sed -e "s/[^-][^\/]*\//  |/g" -e "s/|\([^ ]\)/|-\1/"'
 
 # Easily check Node and NPM versions
 alias n='echo "Node: $(node --version)"; echo "NPM:  $(npm --version)"'
+alias npmGlobalList="npm -g list | grep '^\(├─┬\|└─┬\)'"
 
 # Add an "alert" alias for long running commands.  Use like so:
 #   sleep 10; alert

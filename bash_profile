@@ -2,11 +2,15 @@
 
 echo "Loading ${HOME}/.bash_profile"
 
+export PATH="/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
+
 if [ -f ~/.bashrc ]; then
     source ~/.bashrc
 fi
 
 echo "Exporting PATH's"
+
+source ~/dotfiles/path.sh
 
 # set PATH so it includes user's private bin if it exists
 if [ -d "$HOME/bin" ] ; then

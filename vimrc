@@ -38,6 +38,8 @@ set wrap " Wrap lines
 set textwidth=0
 set wrapmargin=0
 
+set backspace=indent,eol,start
+
 set guioptions=T " Enable the toolbar
 set showcmd
 set ttimeoutlen=50
