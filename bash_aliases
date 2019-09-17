@@ -11,6 +11,12 @@ alias l='ls -CF'
 
 alias git='git'
 
+# Git fix-up
+gfu() {
+   git commit --fixup="$1";
+   git rebase -i "$1"~1 --autosquash;
+}
+
 alias ag='ag --pager="less -r"'
 alias grep='grep --color=auto'
 alias fgrep='fgrep --color=auto'

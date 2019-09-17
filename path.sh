@@ -1,5 +1,40 @@
 # From https://github.com/jthomerson/dotfiles
 
+
+# ==> php@7.1
+# To enable PHP in Apache add the following to httpd.conf and restart Apache:
+# LoadModule php7_module /usr/local/opt/php@7.1/lib/httpd/modules/libphp7.so
+#
+# <FilesMatch \.php$>
+# SetHandler application/x-httpd-php
+# </FilesMatch>
+#
+# Finally, check DirectoryIndex includes index.php
+# DirectoryIndex index.php index.html
+#
+# The php.ini and php-fpm.ini file can be found in:
+# /usr/local/etc/php/7.1/
+#
+# php@7.1 is keg-only, which means it was not symlinked into /usr/local,
+# because this is an alternate version of another formula.
+#
+# If you need to have php@7.1 first in your PATH run:
+# echo 'export PATH="/usr/local/opt/php@7.1/bin:$PATH"' >> ~/.bash_profile
+# echo 'export PATH="/usr/local/opt/php@7.1/sbin:$PATH"' >> ~/.bash_profile
+#
+# For compilers to find php@7.1 you may need to set:
+# export LDFLAGS="-L/usr/local/opt/php@7.1/lib"
+# export CPPFLAGS="-I/usr/local/opt/php@7.1/include"
+#
+#
+# To have launchd start php@7.1 now and restart at login:
+#    brew services start php@7.1
+# Or, if you don't want/need a background service you can just run:
+#    php-fpm
+export PATH="/usr/local/opt/php@7.1/bin:$PATH"
+export PATH="/usr/local/opt/php@7.1/sbin:$PATH"
+
+
 # From `brew install coreutils`:
 # ==> Pouring coreutils-8.31.mojave.bottle.tar.gz
 # ==> Caveats
@@ -38,7 +73,7 @@ export PATH="/usr/local/opt/grep/libexec/gnubin:$PATH"
 #
 # See: https://docs.brew.sh/Homebrew-and-Python
 export PATH="/usr/local/opt/python/libexec/bin:$PATH"
-
+export PATH="/usr/local/opt/python35/bin:$PATH"
 
 
 # From `brew install openssl` (or, because `openssl` is dependency of `ffmpeg`)
@@ -109,7 +144,7 @@ export PATH="/usr/local/opt/sqlite/bin:$PATH"
 #   export LDFLAGS="-L/usr/local/opt/ruby/lib"
 #   export CPPFLAGS="-I/usr/local/opt/ruby/include"
 export PATH="/usr/local/opt/ruby/bin:$PATH"
-
+export PATH="$PATH:~/.gem/bin"
 
 # From `brew cask install mactex`
 # Not explicitly stated in the install, but you need to add its bin
