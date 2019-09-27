@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 
-echo "Loading ${HOME}/.bashrc"
+# echo "Loading ${HOME}/.bashrc"
 
 # Get my great aliases
 if [ -f ~/.bash_aliases ]; then
    . ~/.bash_aliases
 fi
 
-echo "Doing random things first"
+# echo "Doing random things first"
 
 # If not running interactively, don't do anything
 [ -z "$PS1" ] && return
@@ -31,7 +31,7 @@ shopt -s checkwinsize
 color_prompt=yes
 force_color_prompt=yes
 
-echo "Loading colorful PS1 and CLI Colors"
+# echo "Loading colorful PS1 and CLI Colors"
 
 # Kevin's cooool color PS1: User@machine time CWD; branch $
 # Backup: PS1="\[\033[38;5;248m\]\u\[$(tput sgr0)\]\[\033[38;5;250m\]@\[$(tput sgr0)\]\[\033[38;5;252m\]\h \[$(tput sgr0)\]\[\033[38;5;172m\][\D{%r}] \[$(tput sgr0)\]\[\033[38;5;226m\]\w\[$(tput sgr0)\]\n\[\033[38;5;196m\]\$\[$(tput sgr0)\]\[\033[38;5;129m\] \[$(tput sgr0)\]"
@@ -48,7 +48,7 @@ export LS_COLORS='di=34;47:ln=36;40:so=32:pi=33:ex=31:bd=34;46:cd=34;43:su=30;41
 
 test -e "${HOME}/.iterm2_shell_integration.bash" && source "${HOME}/.iterm2_shell_integration.bash"
 
-echo "Lots of random bash functions now..."
+# echo "Lots of random bash functions now..."
 
 parse_git_branch() {
      git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/(\1)/'

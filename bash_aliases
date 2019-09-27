@@ -1,4 +1,4 @@
-echo "Loading ${HOME}/.bash_aliases"
+# echo "Loading ${HOME}/.bash_aliases"
 
 export EDITOR='vim'
 
