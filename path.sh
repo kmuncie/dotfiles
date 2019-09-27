@@ -118,3 +118,5 @@ if [ -d /Library/TeX/texbin ]; then
    export PATH="/Library/TeX/texbin:$PATH"
 fi
 
+# WSL Yarn added to PATH https://github.com/yarnpkg/yarn/issues/5353
+export PATH="$(yarn global bin):$PATH"
