@@ -102,4 +102,6 @@ export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
 
 # Starship https://starship.rs/
-eval "$(starship init bash)"
+if [ -d "/usr/local/bin/starship" ]; then
+   eval "$(starship init bash)"
+fi
