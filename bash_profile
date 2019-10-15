@@ -10,7 +10,9 @@ fi
 
 # echo "Exporting PATH's"
 
-source ~/dotfiles/path.sh
+if [ -f ~/dotfiles/path.sh ]; then
+   source ~/dotfiles/path.sh
+fi
 
 # set PATH so it includes user's private bin if it exists
 if [ -d "$HOME/bin" ] ; then
@@ -51,4 +53,7 @@ export PATH="/usr/local/opt/php@7.1/sbin:$PATH"
 
 # Add RVM to PATH for scripting. Make sure this is the last PATH variable change.
 export PATH="$PATH:$HOME/.rvm/bin"
-eval $(/home/linuxbrew/.linuxbrew/bin/brew shellenv)
+
+if [ -d "/home/linuxbrew/" ]; then
+   eval $(/home/linuxbrew/.linuxbrew/bin/brew shellenv)
+fi

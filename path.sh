@@ -154,4 +154,6 @@ if [ -d /Library/TeX/texbin ]; then
 fi
 
 # WSL Yarn added to PATH https://github.com/yarnpkg/yarn/issues/5353
-export PATH="$(yarn global bin):$PATH"
+if [ -d ~/.yarn/bin ]; then
+   export PATH="$(yarn global bin):$PATH"
+fi
