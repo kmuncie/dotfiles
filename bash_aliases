@@ -49,3 +49,6 @@ alias weather='curl wttr.in/10987'
 
 # Personal Latex development
 alias watchLatex='latexmk -pdf -pvc -outdir=output main.tex'
+
+# Delete .DS_Store files in a directory recursively
+alias rmDS='find . -name '.DS_Store' -type f -delete'

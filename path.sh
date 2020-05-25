@@ -31,8 +31,8 @@
 #    brew services start php@7.1
 # Or, if you don't want/need a background service you can just run:
 #    php-fpm
-export PATH="/usr/local/opt/php@7.1/bin:$PATH"
-export PATH="/usr/local/opt/php@7.1/sbin:$PATH"
+export PATH="/usr/local/opt/php@7.3/bin:$PATH"
+export PATH="/usr/local/opt/php@7.3/sbin:$PATH"
 
 
 # From `brew install coreutils`:
