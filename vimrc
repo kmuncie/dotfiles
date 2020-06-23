@@ -32,7 +32,7 @@ let g:rainbow_active = 0 "0 if you want to enable it later via :RainbowToggle
 
 " Core Display Configuration ---------------------- {{{
 set title
-set number
+set relativenumber
 set ruler " Cursor position
 set wrap " Wrap lines
 set textwidth=0

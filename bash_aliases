@@ -11,6 +11,11 @@ alias l='ls -CF'
 
 alias git='git'
 
+# Open tmux with a named session so tmux-resurrect will overwrite it,
+# This relies on having a personal session setup on all machines
+# https://github.com/tmux-plugins/tmux-resurrect/issues/321
+alias tmux='tmux new -s personal'
+
 # Git fix-up
 gfu() {
    git commit --fixup="$1";
