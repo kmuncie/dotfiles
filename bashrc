@@ -68,16 +68,23 @@ rmcache () {
    popd
 }
 
-preload() {
-   SEGMENTS='/en'
+preload () {
+   SEGMENTS='/en';
+   SITE="$(whoami)";
    if [ "$1" != "" ]; then
-      SEGMENTS="$1"
-   fi
-   URLPATH="/$(whoami)${SEGMENTS}"
-   echo "Requesting ${URLPATH}"
-   while [ "$(curl -w "%{http_code}" -o /dev/null "http://localhost:8080${URLPATH}")" != "200" ]; do
-      sleep 0.1
-      echo "Requesting ${URLPATH}"
+      SEGMENTS="$1";
+   fi;
+   if [ "$2" != "" ]; then
+      SITE="$2";
+   fi;
+   URLPATH="/${SITE}${SEGMENTS}";
+   echo "Requesting ${URLPATH}";
+   PRELOAD_HTTP_STATUS_CODE="$(curl -w "%{http_code}" -o /dev/null "http://localhost:8080${URLPATH}")";
+   while [ $PRELOAD_HTTP_STATUS_CODE == "504" ] || [ $PRELOAD_HTTP_STATUS_CODE == "503" ]; do
+      sleep 0.1;
+      echo "Received Error Code ${PRELOAD_HTTP_STATUS_CODE}";
+      echo "Requesting ${URLPATH}";
+      PRELOAD_HTTP_STATUS_CODE="$(curl -L -w "%{http_code}" -o /dev/null "http://localhost:8080${URLPATH}")";
    done;
    printf "\a"
 }

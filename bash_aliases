@@ -50,7 +50,7 @@ alias c='clear'                             # c:            Clear terminal displ
 
 alias neofetch='neofetch --config ~/dotfiles/neofetch.conf'
 
-alias weather='curl wttr.in/10987'
+alias weather='curl v2.wttr.in/10987'
 
 # Personal Latex development
 alias watchLatex='latexmk -pdf -pvc -outdir=output main.tex'
