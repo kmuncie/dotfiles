@@ -65,6 +65,10 @@ set hlsearch
 " Mac Clipboard Support
 set clipboard=unnamed
 
+if executable('ag')
+   let g:ackprg = 'ag --vimgrep'
+endif
+
 " Highlight nonascii characters
 " https://stackoverflow.com/questions/16987362/how-to-get-vim-to-highlight-non-asc
 syntax match nonascii "[^\x00-\x7F]"
@@ -186,7 +190,6 @@ endfunction
 
 nnoremap <C-n> :call NumberToggle()<cr>
 
-
 " Removes trailing spaces
 function! StripTrailingWhitespace() abort
    normal mZ
@@ -250,6 +253,35 @@ function! PhoSplitBlog() abort
 endfunction
 " Hit F5 to clear trailing whitespace at any time
 nnoremap <silent> <F5> :let _s=@/ <Bar> call StripTrailingWhitespace() <Bar> :let @/=_s <Bar> :nohl <Bar> :unlet _s <CR>
+
+" quickfixopenall.vim
+" Author:
+"   Tim Dahlin
+"
+" Description:
+"   Opens all the files in the quickfix list for editing.
+"
+" Usage:
+"   1. Perform a vimgrep search
+"       :vimgrep /def/ *.rb
+"   2. Issue QuickFixOpenAll command
+"       :QuickFixOpenAll
+
+function!   QuickFixOpenAll()
+   if empty(getqflist())
+      return
+   endif
+   let s:prev_val = ""
+   for d in getqflist()
+      let s:curr_val = bufname(d.bufnr)
+      if (s:curr_val != s:prev_val)
+         exec "edit " . s:curr_val
+      endif
+      let s:prev_val = s:curr_val
+   endfor
+endfunction
+
+command! QuickFixOpenAll call QuickFixOpenAll()
 
 " }}}
 
