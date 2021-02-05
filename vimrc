@@ -113,6 +113,9 @@ set laststatus=2
 
 " Key Mappings ----------------------- {{{
 
+" Latex snippets
+nnoremap \scrip :-1read $HOME/.vim/scriptureCitation.tex<CR>2j$i
+
 " Open vimrc in split for quick changes
 nnoremap <leader>ev :vsplit $MYVIMRC<cr>
 
@@ -271,6 +274,12 @@ augroup END
 augroup markdown
    autocmd!
    autocmd BufNewFile,BufFilePre,BufRead *.md set filetype=markdown
+augroup END
+
+" Set .ts files to have proper markdown syntax highlighting
+augroup typescript
+   autocmd!
+   autocmd BufNewFile,BufFilePre,BufRead *.ts set filetype=javascript
 augroup END
 
 " Set Silverstripe template files (.ss) to use xhtml syntax highlighting

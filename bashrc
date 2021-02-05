@@ -112,3 +112,7 @@ export NVM_DIR="$HOME/.nvm"
 if [ -d "/usr/local/bin/starship" ]; then
    eval "$(starship init bash)"
 fi
+
+# tabtab source for packages
+# uninstall by removing these lines
+[ -f ~/.config/tabtab/__tabtab.bash ] && . ~/.config/tabtab/__tabtab.bash || true
