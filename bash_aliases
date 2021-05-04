@@ -16,6 +16,10 @@ alias git='git'
 # https://github.com/tmux-plugins/tmux-resurrect/issues/321
 alias tmuxNew='tmux new -s personal'
 
+alias tunnel='ssh -M -S work-tunnel -fnNT ussrv185 -L 3222:webpubproject:22'
+alias tunnelstatus='ssh -S work-tunnel -O check ussrv185'
+alias tunnelexit='ssh -S work-tunnel -O exit ussrv185'
+
 # Git fix-up
 gfu() {
    git commit --fixup="$1";
