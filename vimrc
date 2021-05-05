@@ -12,7 +12,9 @@ Plug 'ctrlpvim/ctrlp.vim'
 " File Tree Viewer
 Plug 'scrooloose/nerdtree', { 'on': 'NERDTreeToggle' }
 Plug 'nanotech/jellybeans.vim' " Theme
-Plug 'rbong/vim-crystalline'
+Plug 'kyoz/purify', { 'rtp': 'vim' }
+" Plug 'rbong/vim-crystalline'
+Plug 'vim-airline/vim-airline'
 Plug 'edkolev/tmuxline.vim'
 Plug 'tpope/vim-fugitive'
 Plug 'cakebaker/scss-syntax.vim'
@@ -78,7 +80,8 @@ if &term =~? 'mlterm\|xterm'
    set t_Co=256
 endif
 
-colorscheme jellybeans
+colorscheme purify
+let g:airline_theme='purify'
 
 autocmd FileType gitcommit set textwidth=90
 " Colour the 91st column so that we don’t type over our limit
@@ -90,24 +93,24 @@ autocmd FileType gitcommit set colorcolumn+=73
 " }}}
 
 " Crystalline Theme Settings ----------------- {{{
-function! StatusLine(current)
-  return (a:current ? crystalline#mode() . '%#Crystalline#' : '%#CrystallineInactive#')
-        \ . ' %f%h%w%m%r '
-        \ . (a:current ? '%#CrystallineFill# %{fugitive#head()} ' : '')
-        \ . '%=' . (a:current ? '%#Crystalline# %{&paste?"PASTE ":""}%{&spell?"SPELL ":""}' . crystalline#mode_color() : '')
-        \ . ' %{&ft}[%{&enc}][%{&ffs}] %l/%L %c%V %P '
-endfunction
-
-function! TabLine()
-   return crystalline#bufferline(0, 0, 1)
-endfunction
-
-let g:crystalline_statusline_fn = 'StatusLine'
-let g:crystalline_tabline_fn = 'TabLine'
-let g:crystalline_theme = 'jellybeans'
-
-set showtabline=2
-set laststatus=2
+" function! StatusLine(current)
+  " return (a:current ? crystalline#mode() . '%#Crystalline#' : '%#CrystallineInactive#')
+        " \ . ' %f%h%w%m%r '
+        " \ . (a:current ? '%#CrystallineFill# %{fugitive#head()} ' : '')
+        " \ . '%=' . (a:current ? '%#Crystalline# %{&paste?"PASTE ":""}%{&spell?"SPELL ":""}' . crystalline#mode_color() : '')
+        " \ . ' %{&ft}[%{&enc}][%{&ffs}] %l/%L %c%V %P '
+" endfunction
+"
+" function! TabLine()
+   " return crystalline#bufferline(0, 0, 1)
+" endfunction
+"
+" let g:crystalline_statusline_fn = 'StatusLine'
+" let g:crystalline_tabline_fn = 'TabLine'
+" let g:crystalline_theme = 'purify'
+"
+" set showtabline=2
+" set laststatus=2
 
 " }}}
 
