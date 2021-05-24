@@ -15,6 +15,7 @@ Plug 'nanotech/jellybeans.vim' " Theme
 Plug 'kyoz/purify', { 'rtp': 'vim' }
 " Plug 'rbong/vim-crystalline'
 Plug 'vim-airline/vim-airline'
+Plug 'vim-ctrlspace/vim-ctrlspace'
 Plug 'edkolev/tmuxline.vim'
 Plug 'tpope/vim-fugitive'
 Plug 'cakebaker/scss-syntax.vim'
@@ -29,6 +30,18 @@ let g:ctrlp_use_caching = 1
 " Skip files listed in .gitignore (faster load time)
 let g:ctrlp_user_command = ['.git/', 'git --git-dir=%s/.git ls-files -oc --exclude-standard']
 let g:rainbow_active = 0 "0 if you want to enable it later via :RainbowToggle
+
+" Settings for vim-ctrlspace plugin
+set nocompatible
+set hidden
+set encoding=utf-8
+set showtabline=0
+let g:airline#extensions#tabline#enabled = 1 " Enable the list of buffers
+let g:airline_exclude_preview = 1
+let g:CtrlSpaceUseTabline = 1
+if executable('ag')
+   let g:CtrlSpaceGlobCommand = 'ag -l --nocolor -g ""'
+endif
 
 " }}}
 
