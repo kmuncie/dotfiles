@@ -3,11 +3,11 @@
 export EDITOR='vim'
 
 # enable color support of ls and also add handy aliases
-#alias ls='ls --color=auto'
-#alias dir='dir --color=auto'
-#alias ll='ls -halF --color=auto'
-#alias la='ls -A --color=auto'
-#alias l='ls -CF'
+alias ls='ls --color=auto'
+alias dir='dir --color=auto'
+alias ll='ls -halF --color=auto'
+alias la='ls -A --color=auto'
+alias l='ls -CF'
 
 alias git='git'
 
@@ -19,14 +19,6 @@ alias tmuxNew='tmux new -s personal'
 alias tunnel='ssh -M -S work-tunnel -fnNT ussrv185 -L 3222:webpubproject:22'
 alias tunnelstatus='ssh -S work-tunnel -O check ussrv185'
 alias tunnelexit='ssh -S work-tunnel -O exit ussrv185'
-
-
-export EXA_COLORS='da=1;34:gm=1;34'
-
-alias ls='exa --group-directories-first'
-alias ll='ls -lagh --color always --color-scale --icons -s type --git'
-alias lt='ll -T --level=5'              # Long format, recursive as a tree
-alias lx='ll -sextension'     # Long format, sort by extension
 
 # Git fix-up
 gfu() {

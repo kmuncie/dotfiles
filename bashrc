@@ -4,7 +4,7 @@
 
 # Get my great aliases
 if [ -f ~/.bash_aliases ]; then
-   source ~/.bash_aliases
+   . ~/.bash_aliases
 fi
 
 # echo "Doing random things first"
