@@ -7,12 +7,11 @@
 
 call plug#begin()
 
-" Fuzzy file finder
-Plug 'ctrlpvim/ctrlp.vim'
-" File Tree Viewer
-Plug 'scrooloose/nerdtree', { 'on': 'NERDTreeToggle' }
+Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
+Plug 'junegunn/fzf.vim'
 Plug 'nanotech/jellybeans.vim' " Theme
 Plug 'kyoz/purify', { 'rtp': 'vim' }
+Plug 'ap/vim-css-color',
 " Plug 'rbong/vim-crystalline'
 Plug 'vim-airline/vim-airline'
 Plug 'vim-ctrlspace/vim-ctrlspace'
@@ -143,12 +142,39 @@ nnoremap <leader>ev :vsplit $MYVIMRC<cr>
 nnoremap <leader>sv :source ~/.vimrc<CR>
 
 " Hit ii to exit insert mode
-nnoremap ii <Esc>
 inoremap ii <Esc>
+nnoremap ii <Esc>
+" Hit Ctrl+c to exit insert mode
+inoremap <C-c> <Esc>
 
 " Line movements
 nnoremap H ^
-nnoremap L $
+inoremap L $
+
+" Yank till the end of the line
+nnoremap Y y$
+
+" Keep cursor centered when going through search results
+nnoremap n nzzzv
+nnoremap N Nzzzv
+" Keep cursor in place when joining lines
+nnoremap J mzJ'z
+
+" Undo break points
+inoremap , ,<c-g>u
+inoremap . .<c-g>u
+inoremap ! !<c-g>u
+inoremap ? ?<c-g>u
+inoremap { {<c-g>u
+inoremap ; ;<c-g>u
+
+" Moving text
+vnoremap J :m '>+1<CR>gv=gv
+vnoremap K :m '<-2<CR>gv=gv
+inoremap <C-j> <Esc>:m .+1<CR>==
+inoremap <C-k> <Esc>:m .-2<CR>==
+nnoremap <leader>k :m .-2<CR>==
+nnoremap <leader>j :m .+1<CR>==
 
 " Operator-pending mappings
 " <operator> inside next/last <bracket-type>
