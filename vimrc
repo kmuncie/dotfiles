@@ -23,8 +23,10 @@ Plug 'luochen1990/rainbow'
 Plug 'mileszs/ack.vim'
 call plug#end()
 
-" fzf.vim - ctrl+f for find files
-nnoremap <silent> <C-f> :Files<CR>
+" fzf.vim - ctrl+p for find git tracked files
+nnoremap <silent> <C-p> :GFiles<CR>
+" fzf.vim - ctrl+P for find in all files
+nnoremap <silent> <C-P> :Files<CR>
 " Customize fzf colors to match your color scheme
 " - fzf#wrap translates this to a set of `--color` options
 let g:fzf_colors = {
