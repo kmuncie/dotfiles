@@ -23,6 +23,25 @@ Plug 'luochen1990/rainbow'
 Plug 'mileszs/ack.vim'
 call plug#end()
 
+" fzf.vim - ctrl+f for find files
+nnoremap <silent> <C-f> :Files<CR>
+" Customize fzf colors to match your color scheme
+" - fzf#wrap translates this to a set of `--color` options
+let g:fzf_colors = {
+   \ 'fg':      ['fg', 'Normal'],
+   \ 'bg':      ['bg', 'Normal'],
+   \ 'hl':      ['fg', 'Comment'],
+   \ 'fg+':     ['fg', 'CursorLine', 'CursorColumn', 'Normal'],
+   \ 'bg+':     ['bg', 'CursorLine', 'CursorColumn'],
+   \ 'hl+':     ['fg', 'Statement'],
+   \ 'info':    ['fg', 'PreProc'],
+   \ 'border':  ['fg', 'Ignore'],
+   \ 'prompt':  ['fg', 'Conditional'],
+   \ 'pointer': ['fg', 'Exception'],
+   \ 'marker':  ['fg', 'Keyword'],
+   \ 'spinner': ['fg', 'Label'],
+   \ 'header':  ['fg', 'Comment'] }
+
 let g:rainbow_active = 0 "0 if you want to enable it later via :RainbowToggle
 
 " Settings for vim-ctrlspace plugin
