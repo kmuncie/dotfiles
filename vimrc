@@ -63,11 +63,17 @@ endif
 
 " Core Display Configuration ---------------------- {{{
 set title
-set relativenumber
+set number relativenumber
 set ruler " Cursor position
 set wrap " Wrap lines
-set textwidth=0
+set textwidth=90
+set colorcolumn=+1
 set wrapmargin=0
+
+" augroup vimrc_autocmds
+   " autocmd BufEnter * highlight OverLength ctermbg=darkgray guibg=#592929
+   " autocmd BufEnter * match OverLength /\%v.*/
+" augroup END
 
 set backspace=indent,eol,start
 
@@ -223,14 +229,12 @@ inoremap <right> <nop>
 " Toggle between absolute and relative line numbering
 " Enables relative numbers.
 function! EnableRelativeNumbers() abort
-  set number
-  set relativenumber
+  set number relativenumber
 endfunction
 
 " Disables relative numbers.
 function! DisableRelativeNumbers() abort
-  set number
-  set norelativenumber
+  set number norelativenumber
 endfunction
 
 " NumberToggle toggles between relative and absolute line numbers
