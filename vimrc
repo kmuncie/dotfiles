@@ -23,6 +23,7 @@ Plug 'luochen1990/rainbow'
 Plug 'mileszs/ack.vim'
 call plug#end()
 
+let $FZF_DEFAULT_COMMAND = 'ag -g ""'
 " fzf.vim - ctrl+p for find git tracked files
 nnoremap <silent> <C-p> :GFiles<CR>
 " fzf.vim - ctrl+P for find in all files
