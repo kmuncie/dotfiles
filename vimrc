@@ -166,7 +166,7 @@ inoremap <C-c> <Esc>
 
 " Line movements
 nnoremap H ^
-inoremap L $
+nnoremap L $
 
 " Yank till the end of the line
 nnoremap Y y$
