@@ -4,19 +4,20 @@
 [alias]
    lg = log -50 --color --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit
    lgl = log --graph --stat --abbrev-commit --decorate --format=format:'%C(bold yellow)%h%C(reset) - %C(bold green)%ar%C(reset)%C(dim green) by %C(reset)%C(bold white)%an%C(reset)%C(dim green) on %aD%C(reset)%C(bold yellow)%d%C(reset)%n''%C(white)%s%C(reset)%n' --all
+   f = fetch --all --prune
+   ff = pull --ff-only
    st = status -sb
+   co = checkout
+   d = diff
    ai = add --interactive
    aa = add --all
-   la = "!git config -l | grep alias | cut -c 7-"
-   d = diff
-   co = checkout
-   cob = checkout -b
-   ff = pull --ff-only
-   ci = commit
-   f = fetch --all --prune
-   rd = rebase origin/dev
-   pd = push origin dev
+   c = commit
+   # Rebase off common ancestor https://github.com/silvermine/silvermine-info/blob/master/commit-history.md
+   rca = !git rebase -i $(git merge-base origin/master HEAD) --autosquash
+   # Show all local branches
    brd = "! f() { for k in $(git branch $@ | sed 's/^..//; s/ .*//'); do echo "$(git log -1 --pretty='%Cgreen%ci %Cblue(%cr)%Creset ' $k) $k" ; done | sort -r; }; f"
+   # List all aliases
+   la = "!git config -l | grep alias | cut -c 7-"
 [color "status"]
    added = green
    changed = red
