@@ -26,6 +26,9 @@ gfu() {
    git rebase -i "$1"~1 --autosquash;
 }
 
+# Delete local branches that have been merged to master
+alias gitClean='git branch --merged master --no-color | grep -v "master\|stable\|main" | xargs git branch -d'
+
 alias ag='ag --pager="less -r"'
 alias grep='grep --color=auto'
 alias fgrep='fgrep --color=auto'
