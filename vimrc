@@ -9,18 +9,16 @@ call plug#begin()
 
 Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
 Plug 'junegunn/fzf.vim'
-Plug 'nanotech/jellybeans.vim' " Theme
 Plug 'kyoz/purify', { 'rtp': 'vim' }
-Plug 'ap/vim-css-color',
-" Plug 'rbong/vim-crystalline'
 Plug 'vim-airline/vim-airline'
-Plug 'vim-ctrlspace/vim-ctrlspace'
 Plug 'edkolev/tmuxline.vim'
+Plug 'sheerun/vim-polyglot'
 Plug 'tpope/vim-fugitive'
-Plug 'cakebaker/scss-syntax.vim'
-Plug 'posva/vim-vue'
-Plug 'luochen1990/rainbow'
 Plug 'mileszs/ack.vim'
+Plug 'ap/vim-css-color',
+Plug 'luochen1990/rainbow'
+Plug 'nanotech/jellybeans.vim' " Theme
+Plug 'pineapplegiant/spaceduck', { 'branch': 'dev' }
 call plug#end()
 
 let $FZF_DEFAULT_COMMAND = 'ag --hidden -g ""'
@@ -54,10 +52,6 @@ set encoding=utf-8
 set showtabline=0
 let g:airline#extensions#tabline#enabled = 1 " Enable the list of buffers
 let g:airline_exclude_preview = 1
-let g:CtrlSpaceUseTabline = 1
-if executable('ag')
-   let g:CtrlSpaceGlobCommand = 'ag -l --nocolor -g ""'
-endif
 
 " }}}
 
@@ -69,11 +63,6 @@ set wrap " Wrap lines
 set textwidth=90
 set colorcolumn=+1
 set wrapmargin=0
-
-" augroup vimrc_autocmds
-   " autocmd BufEnter * highlight OverLength ctermbg=darkgray guibg=#592929
-   " autocmd BufEnter * match OverLength /\%v.*/
-" augroup END
 
 set backspace=indent,eol,start
 
@@ -119,8 +108,15 @@ if &term =~? 'mlterm\|xterm'
    set t_Co=256
 endif
 
-colorscheme purify
-let g:airline_theme='purify'
+" Copied in from spaceduck theme readme
+if exists('+termguicolors')
+   let &t_8f = "\<Esc>[38;2;%lu;%lu;%lum"
+   let &t_8b = "\<Esc>[48;2;%lu;%lu;%lum"
+   set termguicolors
+endif
+
+colorscheme spaceduck
+let g:airline_theme='spaceduck'
 
 autocmd FileType gitcommit set textwidth=90
 " Colour the 91st column so that we don’t type over our limit
@@ -128,28 +124,6 @@ autocmd FileType gitcommit set colorcolumn=+1
 " In Git commit messages, also colour the 72nd column (for titles)
 autocmd FileType gitcommit set colorcolumn+=73
 
-
-" }}}
-
-" Crystalline Theme Settings ----------------- {{{
-" function! StatusLine(current)
-  " return (a:current ? crystalline#mode() . '%#Crystalline#' : '%#CrystallineInactive#')
-        " \ . ' %f%h%w%m%r '
-        " \ . (a:current ? '%#CrystallineFill# %{fugitive#head()} ' : '')
-        " \ . '%=' . (a:current ? '%#Crystalline# %{&paste?"PASTE ":""}%{&spell?"SPELL ":""}' . crystalline#mode_color() : '')
-        " \ . ' %{&ft}[%{&enc}][%{&ffs}] %l/%L %c%V %P '
-" endfunction
-"
-" function! TabLine()
-   " return crystalline#bufferline(0, 0, 1)
-" endfunction
-"
-" let g:crystalline_statusline_fn = 'StatusLine'
-" let g:crystalline_tabline_fn = 'TabLine'
-" let g:crystalline_theme = 'purify'
-"
-" set showtabline=2
-" set laststatus=2
 
 " }}}
 
