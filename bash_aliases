@@ -55,6 +55,9 @@ alias .6='cd ../../../../../../'            # Go back 6 directory levels
 alias ~="cd ~"                              # ~:            Go Home
 alias c='clear'                             # c:            Clear terminal display
 
+# Quickly get to dotfiles
+alias df='pushd ~/dotfiles'
+
 alias neofetch='neofetch --config ~/dotfiles/neofetch.conf'
 
 alias weather='curl v2.wttr.in/10987'
