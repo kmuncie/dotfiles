@@ -2,7 +2,7 @@
    name = Kevin Muncie
    email = kevin@kmuncie.com
 [alias]
-   lg = log -50 --color --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit
+   lg = log -20 --color --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit
    lgl = log --graph --stat --abbrev-commit --decorate --format=format:'%C(bold yellow)%h%C(reset) - %C(bold green)%ar%C(reset)%C(dim green) by %C(reset)%C(bold white)%an%C(reset)%C(dim green) on %aD%C(reset)%C(bold yellow)%d%C(reset)%n''%C(white)%s%C(reset)%n' --all
    f = fetch --all --prune
    ff = pull --ff-only
@@ -18,37 +18,44 @@
    brd = "! f() { for k in $(git branch $@ | sed 's/^..//; s/ .*//'); do echo "$(git log -1 --pretty='%Cgreen%ci %Cblue(%cr)%Creset ' $k) $k" ; done | sort -r; }; f"
    # List all aliases
    la = "!git config -l | grep alias | cut -c 7-"
+
 [color "status"]
    added = green
    changed = red
    untracked = cyan
-[color "diff"]
-   meta = yellow bold
-   frag = magenta bold
-   old = red white reverse
-   new = green
-   whitespace = white reverse
+
 [merge]
-   conflictstyle = diff3
+   conflictstyle = zdiff3
+
+[diff]
+   colorMoved = default
+   algorithm = histogram
 
 [core]
-    pager = delta
+   # This uses package https://github.com/dandavison/delta
+   pager = delta
 
 [interactive]
-    diffFilter = delta --color-only --features=interactive
+   diffFilter = delta --color-only --features=interactive
 
 [delta]
-    features = decorations
+   features = woolly-mammoth decorations
+   navigate = true  # use n and N to move between diff sections
+   side-by-side = true
+   line-numbers = true
 
 [delta "interactive"]
-    keep-plus-minus-markers = false
+   keep-plus-minus-markers = false
 
 [delta "decorations"]
-    commit-decoration-style = blue ol
-    commit-style = raw
-    file-style = omit
-    hunk-header-decoration-style = blue box
-    hunk-header-file-style = red
-    hunk-header-line-number-style = "#067a00"
-    hunk-header-style = file line-number syntax
+   commit-decoration-style = blue ol
+   commit-style = raw
+   file-style = omit
+   hunk-header-decoration-style = blue box
+   hunk-header-file-style = red
+   hunk-header-line-number-style = "#067a00"
+   hunk-header-style = file line-number syntax
+
+[include]
+   path = ~/dotfiles/themes.gitconfig
 

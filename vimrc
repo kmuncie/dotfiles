@@ -52,6 +52,7 @@ set encoding=utf-8
 set showtabline=0
 let g:airline#extensions#tabline#enabled = 1 " Enable the list of buffers
 let g:airline_exclude_preview = 1
+let g:airline#extensions#tmuxline#enabled = 0
 
 " }}}
 
