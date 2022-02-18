@@ -29,7 +29,8 @@
 
 [diff]
    colorMoved = default
-   algorithm = histogram
+   # Tried using histogram but was confusing, try again another time
+   # algorithm = histogram
 
 [core]
    # This uses package https://github.com/dandavison/delta
