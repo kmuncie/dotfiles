@@ -19,6 +19,7 @@ Plug 'ap/vim-css-color',
 Plug 'luochen1990/rainbow'
 Plug 'nanotech/jellybeans.vim' " Theme
 Plug 'pineapplegiant/spaceduck', { 'branch': 'dev' }
+Plug 'junegunn/goyo.vim'
 call plug#end()
 
 let $FZF_DEFAULT_COMMAND = 'ag --hidden -g ""'
