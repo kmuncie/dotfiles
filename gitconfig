@@ -25,7 +25,7 @@
    untracked = cyan
 
 [merge]
-   conflictstyle = zdiff3
+   conflictstyle = diff3
 
 [diff]
    colorMoved = default
