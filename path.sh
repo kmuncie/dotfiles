@@ -1,47 +1,14 @@
 # From https://github.com/jthomerson/dotfiles
 
-
-# ==> php@7.1
-# To enable PHP in Apache add the following to httpd.conf and restart Apache:
-# LoadModule php7_module /usr/local/opt/php@7.1/lib/httpd/modules/libphp7.so
-#
-# <FilesMatch \.php$>
-# SetHandler application/x-httpd-php
-# </FilesMatch>
-#
-# Finally, check DirectoryIndex includes index.php
-# DirectoryIndex index.php index.html
-#
-# The php.ini and php-fpm.ini file can be found in:
-# /usr/local/etc/php/7.1/
-#
-# php@7.1 is keg-only, which means it was not symlinked into /usr/local,
-# because this is an alternate version of another formula.
-#
-# If you need to have php@7.1 first in your PATH run:
-# echo 'export PATH="/usr/local/opt/php@7.1/bin:$PATH"' >> ~/.bash_profile
-# echo 'export PATH="/usr/local/opt/php@7.1/sbin:$PATH"' >> ~/.bash_profile
-#
-# For compilers to find php@7.1 you may need to set:
-# export LDFLAGS="-L/usr/local/opt/php@7.1/lib"
-# export CPPFLAGS="-I/usr/local/opt/php@7.1/include"
-#
-#
-# To have launchd start php@7.1 now and restart at login:
-#    brew services start php@7.1
-# Or, if you don't want/need a background service you can just run:
-#    php-fpm
-export PATH="/usr/local/opt/php@7.3/bin:$PATH"
-export PATH="/usr/local/opt/php@7.3/sbin:$PATH"
-
-
 # From `brew install coreutils`:
 # ==> Pouring coreutils-8.31.mojave.bottle.tar.gz
 # ==> Caveats
 # Commands also provided by macOS have been installed with the prefix "g".
 # If you need to use these commands with their normal names, you
 # can add a "gnubin" directory to your PATH from your bashrc like:
-export PATH="/usr/local/opt/coreutils/libexec/gnubin:$PATH"
+# https://stackoverflow.com/questions/57972341/how-to-install-and-use-gnu-ls-on-macos
+export PATH="${HOMEBREW_PREFIX}/opt/coreutils/libexec/gnubin:${PATH}"
+export MANPATH="${HOMEBREW_PREFIX}/opt/coreutils/libexec/gnuman:${MANPATH}"
 
 
 # From `brew install grep`:
@@ -50,7 +17,7 @@ export PATH="/usr/local/opt/coreutils/libexec/gnubin:$PATH"
 # All commands have been installed with the prefix "g".
 # If you need to use these commands with their normal names, you
 # can add a "gnubin" directory to your PATH from your bashrc like:
-export PATH="/usr/local/opt/grep/libexec/gnubin:$PATH"
+export PATH="${HOMEBREW_PREFIX}/opt/grep/libexec/gnubin:$PATH"
 
 
 # From `brew install python` (or, because `python` is dependency of `ffmpeg`)
@@ -72,8 +39,8 @@ export PATH="/usr/local/opt/grep/libexec/gnubin:$PATH"
 #   /usr/local/lib/python3.7/site-packages
 #
 # See: https://docs.brew.sh/Homebrew-and-Python
-export PATH="/usr/local/opt/python/libexec/bin:$PATH"
-export PATH="/usr/local/opt/python35/bin:$PATH"
+export PATH="${HOMEBREW_PREFIX}/opt/python/libexec/bin:$PATH"
+
 
 
 # From `brew install openssl` (or, because `openssl` is dependency of `ffmpeg`)
@@ -95,7 +62,26 @@ export PATH="/usr/local/opt/python35/bin:$PATH"
 # For compilers to find openssl you may need to set:
 #   export LDFLAGS="-L/usr/local/opt/openssl/lib"
 #   export CPPFLAGS="-I/usr/local/opt/openssl/include"
-export PATH="/usr/local/opt/openssl/bin:$PATH"
+# export PATH="/usr/local/opt/openssl/bin:$PATH"
+
+# From `brew install openssl@1.1`
+# A CA file has been bootstrapped using certificates from the system
+# keychain. To add additional certificates, place .pem files in
+#   /usr/local/etc/openssl@1.1/certs
+#
+# and run
+#   /usr/local/opt/openssl@1.1/bin/c_rehash
+#
+# openssl@1.1 is keg-only, which means it was not symlinked into /usr/local,
+# because openssl/libressl is provided by macOS so don't link an incompatible version.
+#
+# If you need to have openssl@1.1 first in your PATH run:
+#   echo 'export PATH="/usr/local/opt/openssl@1.1/bin:$PATH"' >> ~/.bash_profile
+#
+# For compilers to find openssl@1.1 you may need to set:
+#   export LDFLAGS="-L/usr/local/opt/openssl@1.1/lib"
+#   export CPPFLAGS="-I/usr/local/opt/openssl@1.1/include"
+export PATH="${HOMEBREW_PREFIX}/opt/openssl@1.1/bin:$PATH"
 
 
 # From `brew install readline` (or, because `readline` is dependency of `ffmpeg`)
@@ -123,7 +109,7 @@ export PATH="/usr/local/opt/openssl/bin:$PATH"
 # For compilers to find sqlite you may need to set:
 #   export LDFLAGS="-L/usr/local/opt/sqlite/lib"
 #   export CPPFLAGS="-I/usr/local/opt/sqlite/include"
-export PATH="/usr/local/opt/sqlite/bin:$PATH"
+export PATH="${HOMEBREW_PREFIX}/opt/sqlite/bin:$PATH"
 
 
 # From `brew install ruby` (or, because `ruby` is a dependency of `vim`)
@@ -143,8 +129,46 @@ export PATH="/usr/local/opt/sqlite/bin:$PATH"
 # For compilers to find ruby you may need to set:
 #   export LDFLAGS="-L/usr/local/opt/ruby/lib"
 #   export CPPFLAGS="-I/usr/local/opt/ruby/include"
-export PATH="/usr/local/opt/ruby/bin:$PATH"
-export PATH="$PATH:~/.gem/bin"
+export PATH="${HOMEBREW_PREFIX}/opt/ruby/bin:$PATH"
+
+
+# From `brew cask install mactex`
+# Not explicitly stated in the install, but you need to add its bin
+# folder to the PATH:
+if [ -d /Library/TeX/texbin ]; then
+   export PATH="/Library/TeX/texbin:$PATH"
+fi
+
+# From `brew install openjdk`
+# ==> Pouring openjdk-13.0.2+8_2.mojave.bottle.tar.gz
+# ==> Caveats
+# For the system Java wrappers to find this JDK, symlink it with
+#   sudo ln -sfn /usr/local/opt/openjdk/libexec/openjdk.jdk /Library/Java/JavaVirtualMachines/openjdk.jdk
+#
+# openjdk is keg-only, which means it was not symlinked into /usr/local,
+# because it shadows the macOS `java` wrapper.
+#
+# If you need to have openjdk first in your PATH run:
+#   echo 'export PATH="/usr/local/opt/openjdk/bin:$PATH"' >> ~/.bash_profile
+#
+# For compilers to find openjdk you may need to set:
+#   export CPPFLAGS="-I/usr/local/opt/openjdk/include"
+#
+# ==> Summary
+# 🍺  /usr/local/Cellar/openjdk/13.0.2+8_2: 631 files, 314.6MB
+export PATH="${HOMEBREW_PREFIX}/opt/openjdk/bin:$PATH"
+
+# From `brew install gnu-sed`
+# ==> Pouring gnu-sed-4.8.mojave.bottle.tar.gz
+# ==> Caveats
+# GNU "sed" has been installed as "gsed".
+# If you need to use it as "sed", you can add a "gnubin" directory
+# to your PATH from your bashrc like:
+#
+#     PATH="/usr/local/opt/gnu-sed/libexec/gnubin:$PATH"
+PATH="${HOMEBREW_PREFIX}/opt/gnu-sed/libexec/gnubin:$PATH"
+
+## -- Kevin's Additions ------------------------------------------------
 
 # From `brew cask install mactex`
 # Not explicitly stated in the install, but you need to add its bin
