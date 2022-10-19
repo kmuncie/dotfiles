@@ -290,6 +290,17 @@ endfunction
 " Hit F5 to clear trailing whitespace at any time
 nnoremap <silent> <F5> :let _s=@/ <Bar> call StripTrailingWhitespace() <Bar> :let @/=_s <Bar> :nohl <Bar> :unlet _s <CR>
 
+def s:GitBlameLineFunc()
+    var popup_win = printf("git -C %s blame -s -L %s,%s -- %s | head -c 8", expand('%:h'), line('.'), line('.'), expand('%:p'))
+        ->system()
+        ->printf("git -C " .. expand('%:h') .. " log --stat -1 %s")
+        ->system()
+        ->split("\n")
+        ->popup_atcursor({ "padding": [0, 1, 1, 1] })
+    call setbufvar(winbufnr(popup_win), '&filetype', 'git')
+enddef
+nnoremap <silent><leader>gb :call <SID>GitBlameLineFunc()<CR>
+
 " quickfixopenall.vim
 " Author:
 "   Tim Dahlin
