@@ -15,6 +15,7 @@ Plug 'edkolev/tmuxline.vim'
 Plug 'sheerun/vim-polyglot'
 Plug 'tpope/vim-fugitive'
 Plug 'mileszs/ack.vim'
+Plug 'tpope/vim-commentary'
 Plug 'ap/vim-css-color',
 Plug 'luochen1990/rainbow'
 Plug 'nanotech/jellybeans.vim' " Theme
