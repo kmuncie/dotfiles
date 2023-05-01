@@ -1,0 +1,55 @@
+# echo "Loading ${HOME}/.bash_aliases"
+
+export EDITOR='vim'
+
+# Verbosity and settings that you pretty much just always are going to want.
+alias cp="cp -iv"
+alias mv="mv -iv"
+alias rm="rm -vI"
+alias bc="bc -ql"
+alias rsync="rsync -vrPlu"
+alias mkd="mkdir -pv"
+alias ffmpeg="ffmpeg -hide_banner"
+
+# Colorize commands when possible.
+alias ls='ls --color=auto'
+alias dir='dir --color=auto'
+alias ll='ls -halF --color=auto'
+alias la='ls -A --color=auto'
+alias l='ls -CF'
+
+alias ag='ag --pager="less -r"'
+alias grep='grep --color=auto'
+alias diff='diff --color=auto'
+alias ip='ip -color=auto'
+
+# Delete local branches that have been merged to master
+alias gitClean='git branch --merged master --no-color | grep -v "master\|stable\|main" | xargs git branch -d'
+
+# Useful if tree is not installed
+alias myTree='find . | sed -e "s/[^-][^\/]*\//  |/g" -e "s/|\([^ ]\)/|-\1/"'
+
+# Easily check Node and NPM versions
+alias n='echo "Node: $(node --version)"; echo "NPM:  $(npm --version)"'
+alias npmGlobalList="npm -g list | grep '^\(├─┬\|└─┬\)'"
+
+alias c='clear'
+
+# Quickly get to dotfiles
+alias df='pushd ~/dotfiles'
+
+alias neofetch='neofetch --config ~/dotfiles/neofetch.conf'
+
+alias weather='curl v2.wttr.in/10987'
+
+# Personal Latex development
+alias watchLatex='latexmk -pdf -pvc -outdir=output main.tex'
+
+# Delete .DS_Store files in a directory recursively
+alias rmDS="find . -type f -name '*.DS_Store' -ls -delete"
+
+# Git fix-up
+gfu() {
+   git commit --fixup="$1";
+   git rebase -i "$1"~1 --autosquash;
+}

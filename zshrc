@@ -7,32 +7,22 @@ fi
 
 # If you come from bash you might have to change your $PATH.
 # export PATH=$HOME/bin:/usr/local/bin:$PATH
+#
+ if [ -f ~/dotfiles/path.sh ]; then
+   source ~/dotfiles/path.sh
+fi
 
 # Path to your oh-my-zsh installation.
 export ZSH="$HOME/.oh-my-zsh"
 
-# BEGIN Antigen plugin manager
-source ~/dotfiles/antigen.zsh
-
-# Load the oh-my-zsh's library.
-antigen use oh-my-zsh
-
-# Bundles from the default repo (robbyrussell's oh-my-zsh).
-antigen bundle git
-
-# Load the theme.
-antigen theme robbyrussell
-antigen theme romkatv/powerlevel10k
-
-# Tell Antigen that you're done.
-antigen apply
-# END Antigen plugin manager
+# Source a common aliases config file
+source ~/.aliases
 
 # Set name of the theme to load --- if set to "random", it will
 # load a random theme each time oh-my-zsh is loaded, in which case,
 # to know which specific one was loaded, run: echo $RANDOM_THEME
 # See https://github.com/ohmyzsh/ohmyzsh/wiki/Themes
-#ZSH_THEME="robbyrussell"
+ZSH_THEME="powerlevel10k/powerlevel10k"
 
 # Set list of themes to pick from when loading at random
 # Setting this variable when ZSH_THEME=random will cause zsh to load
@@ -94,8 +84,7 @@ antigen apply
 # Custom plugins may be added to $ZSH_CUSTOM/plugins/
 # Example format: plugins=(rails git textmate ruby lighthouse)
 # Add wisely, as too many plugins slow down shell startup.
-# plugins=(git)
-
+ plugins=(git 1password ag grunt alias-finder)
 
 source $ZSH/oh-my-zsh.sh
 
