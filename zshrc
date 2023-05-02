@@ -89,6 +89,55 @@ ZSH_THEME="powerlevel10k/powerlevel10k"
 source $ZSH/oh-my-zsh.sh
 
 # User configuration
+#
+# # From JT
+showSiteCert ()
+{
+   SITE="$1";
+   openssl s_client -showcerts -servername "${SITE}" -connect "${SITE}":443 2> /dev/null < /dev/null
+}
+
+rmcache () {
+   pushd ~/jworg-cs/content-core/
+   rm -rf ~/jworg-cs/.sscache/* ~/jworg-cs/.sscache/.cache*
+   php cli.php CacheResetTask --entire
+   popd
+}
+
+preload () {
+   SEGMENTS='/en';
+   SITE="$(whoami)";
+   if [ "$1" != "" ]; then
+      SEGMENTS="$1";
+   fi;
+   if [ "$2" != "" ]; then
+      SITE="$2";
+   fi;
+   URLPATH="/${SITE}${SEGMENTS}";
+   echo "Requesting ${URLPATH}";
+   PRELOAD_HTTP_STATUS_CODE="$(curl -w "%{http_code}" -o /dev/null "http://localhost:8080${URLPATH}")";
+   while [ $PRELOAD_HTTP_STATUS_CODE == "504" ] || [ $PRELOAD_HTTP_STATUS_CODE == "503" ]; do
+      sleep 0.1;
+      echo "Received Error Code ${PRELOAD_HTTP_STATUS_CODE}";
+      echo "Requesting ${URLPATH}";
+      PRELOAD_HTTP_STATUS_CODE="$(curl -L -w "%{http_code}" -o /dev/null "http://localhost:8080${URLPATH}")";
+   done;
+   printf "\a"
+}
+
+smartresize() {
+   mogrify -path $3 -filter Triangle -define filter:support=2 -thumbnail $2 -unsharp 0.25x0.08+8.3+0.045 -dither None -posterize 136 -quality 82 -define jpeg:fancy-upsampling=off -define png:compression-filter=5 -define png:compression-level=9 -define png:compression-strategy=1 -define png:exclude-chunk=all -interlace none -colorspace sRGB $1
+}
+
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+
+# tabtab source for packages
+# uninstall by removing these lines
+[ -f ~/.config/tabtab/__tabtab.bash ] && . ~/.config/tabtab/__tabtab.bash || true
+
+[ -f ~/.fzf.bash ] && source ~/.fzf.bash
 
 # export MANPATH="/usr/local/man:$MANPATH"
 
