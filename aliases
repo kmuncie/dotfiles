@@ -11,6 +11,13 @@ alias rsync="rsync -vrPlu"
 alias mkd="mkdir -pv"
 alias ffmpeg="ffmpeg -hide_banner"
 
+alias ..='cd ..'
+alias ...='cd ../..'
+alias ....='cd ../../..'
+alias .....='cd ../../../..'
+alias ~='cd ~'
+alias -- -='cd -'
+
 # Colorize commands when possible.
 alias ls='ls --color=auto'
 alias dir='dir --color=auto'
