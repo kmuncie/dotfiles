@@ -56,6 +56,13 @@ parse_git_branch() {
      git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/(\1)/'
 }
 
+# AWS COMPLEX USAGE
+function assume {
+   source assume $@
+   # Serverless (SLS) fails when AWS_PROFILE is set, so we unset it here
+   unset AWS_PROFILE
+}
+
 # From JT
 showSiteCert ()
 {

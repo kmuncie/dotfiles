@@ -23,6 +23,9 @@ alias grep='grep --color=auto'
 alias diff='diff --color=auto'
 alias ip='ip -color=auto'
 
+# COMPLEX AWS USAGE
+alias unsetAWS='unset $(env | grep AWS | grep -v AWS_REGION | grep -v AWS_DEFAULT_REGION | sed '\''s|=.*||'\'')'
+
 # Delete local branches that have been merged to master
 alias gitClean='git branch --merged master --no-color | grep -v "master\|stable\|main" | xargs git branch -d'
 
