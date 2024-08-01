@@ -17,7 +17,7 @@
         },
         {
           "background": "#bf616a",
-          "foreground": "#3b4252",
+          "foreground": "#d8dee9",
           "powerline_symbol": "\ue0b0",
           "properties": {
             "style": "full"
@@ -101,7 +101,7 @@
         },
         {
           "background": "#33658A",
-          "foreground": "#3b4252",
+          "foreground": "#eceff4",
           "invert_powerline": true,
           "style": "diamond",
           "template": " {{ .Name }} ",
