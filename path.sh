@@ -198,6 +198,6 @@ if [ -d "/home/linuxbrew/" ]; then
    eval $(/home/linuxbrew/.linuxbrew/bin/brew shellenv)
 elif [ -f /opt/homebrew/bin/brew ]; then
    eval $(/opt/homebrew/bin/brew shellenv)
-else [ -f /usr/local/bin/brew ];
+elif [ -f /usr/local/bin/brew ]; then
    eval $(/usr/local/bin/brew shellenv)
 fi

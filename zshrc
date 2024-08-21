@@ -1,13 +1,3 @@
-# If you come from bash you might have to change your $PATH.
-# export PATH=$HOME/bin:/usr/local/bin:$PATH
-#
- if [ -f ~/dotfiles/path.sh ]; then
-   source ~/dotfiles/path.sh
-fi
-
-# Source a common aliases config file
-source ~/.aliases
-
 # User configuration
 #
 # # From JT

@@ -1,7 +1,3 @@
-# echo "Loading ${HOME}/.bash_aliases"
-
-export EDITOR='vim'
-
 # Verbosity and settings that you pretty much just always are going to want.
 alias cp="cp -iv"
 alias mv="mv -iv"
@@ -29,6 +25,9 @@ alias ag='ag --pager="less -r"'
 alias grep='grep --color=auto'
 alias diff='diff --color=auto'
 alias ip='ip -color=auto'
+
+# Force me to use NeoVim
+alias vi='nvim'
 
 # COMPLEX AWS USAGE
 alias unsetAWS='unset $(env | grep AWS | grep -v AWS_REGION | grep -v AWS_DEFAULT_REGION | sed '\''s|=.*||'\'')'
