@@ -33,7 +33,7 @@ alias vi='nvim'
 alias unsetAWS='unset $(env | grep AWS | grep -v AWS_REGION | grep -v AWS_DEFAULT_REGION | sed '\''s|=.*||'\'')'
 
 # Delete local branches that have been merged to master
-alias gitClean='git branch --merged master --no-color | grep -v "master\|stable\|main" | xargs git branch -d'
+alias gitClean='git branch --merged | grep -v "^\*\|master\|main\|stable\|develop" | tr -d " " | xargs -r git branch -d'
 
 # Useful if tree is not installed
 alias myTree='find . | sed -e "s/[^-][^\/]*\//  |/g" -e "s/|\([^ ]\)/|-\1/"'
