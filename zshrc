@@ -1,20 +1,26 @@
 # User configuration
-#
-# # From JT
-showSiteCert ()
-{
+
+# AWS Usage tool
+assume() {
+  source assume $@
+  # Serverless (SLS) fails when AWS_PROFILE is set, so we unset it here
+  unset AWS_PROFILE
+}
+
+# From JT
+showSiteCert() {
    SITE="$1";
    openssl s_client -showcerts -servername "${SITE}" -connect "${SITE}":443 2> /dev/null < /dev/null
 }
 
-rmcache () {
+rmcache() {
    pushd ~/jworg-cs/content-core/
    rm -rf ~/jworg-cs/.sscache/* ~/jworg-cs/.sscache/.cache*
    php cli.php CacheResetTask --entire
    popd
 }
 
-preload () {
+preload() {
    SEGMENTS='/en';
    SITE="$(whoami)";
    if [ "$1" != "" ]; then
