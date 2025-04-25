@@ -1,11 +1,12 @@
 # User configuration
 
 # AWS Usage tool
-assume() {
+aws_assume() {
   source assume $@
   # Serverless (SLS) fails when AWS_PROFILE is set, so we unset it here
   unset AWS_PROFILE
 }
+alias assume='aws_assume'
 
 # From JT
 showSiteCert() {
