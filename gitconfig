@@ -8,7 +8,8 @@
    f = fetch --all --prune
    ff = pull --ff-only
    st = status -sb
-   co = checkout
+   sw = switch
+   co = switch
    d = diff
    ai = add --interactive
    aa = add --all
