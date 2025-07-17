@@ -111,3 +111,5 @@ export NVM_DIR="$HOME/.nvm"
 [ -f ~/.config/tabtab/__tabtab.bash ] && . ~/.config/tabtab/__tabtab.bash || true
 
 [ -f ~/.fzf.bash ] && source ~/.fzf.bash
+
+[[ "$TERM_PROGRAM" == "kiro" ]] && . "$(kiro --locate-shell-integration-path bash)"
