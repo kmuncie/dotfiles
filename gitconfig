@@ -9,7 +9,7 @@
    ff = pull --ff-only
    st = status -sb
    sw = switch
-   co = switch
+   co = checkout
    d = diff
    ai = add --interactive
    aa = add --all

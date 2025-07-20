@@ -1,6 +1,16 @@
 # User configuration
 # zmodload zsh/zprof # Profiling tool, also line at end of file
 
+# zsh-nvm plugin config
+# https://github.com/lukechilds/zsh-nvm
+export NVM_LAZY_LOAD=true
+export NVM_AUTO_USE=true
+
+# Antidote setup
+source $(brew --prefix)/opt/antidote/share/antidote/antidote.zsh
+antidote load
+source ~/.zsh_plugins.zsh
+
 # AWS Usage tool
 aws_assume() {
   source assume $@
@@ -61,54 +71,7 @@ smartresize() {
 
 export GPG_TTY=$(tty)
 
-export NVM_DIR="$HOME/.nvm"
-
-# Lazy-load nvm
-# This defines a function that will be called the first time you run 'nvm', 'node', or 'npm'.
-# It will load the real nvm, and then execute your command.
-# Subsequent calls will be fast since nvm is already loaded.
-lazy_load_nvm() {
-  # Unset the functions to avoid recursive loops
-  unset -f nvm node npm
-
-  # Source nvm scripts
-  [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-  [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
-  
-  # Execute the original command
-  "$@"
-}
-
-# Alias the commands to our lazy-load function
-alias nvm="lazy_load_nvm nvm"
-alias node="lazy_load_nvm node"
-alias npm="lazy_load_nvm npm"
-
 [ -f ~/.fzf.bash ] && source ~/.fzf.bash
-
-# export MANPATH="/usr/local/man:$MANPATH"
-
-# You may need to manually set your language environment
-# export LANG=en_US.UTF-8
-
-# Preferred editor for local and remote sessions
-# if [[ -n $SSH_CONNECTION ]]; then
-#   export EDITOR='vim'
-# else
-#   export EDITOR='mvim'
-# fi
-
-# Compilation flags
-# export ARCHFLAGS="-arch x86_64"
-
-# Set personal aliases, overriding those provided by oh-my-zsh libs,
-# plugins, and themes. Aliases can be placed here, though oh-my-zsh
-# users are encouraged to define aliases within the ZSH_CUSTOM folder.
-# For a full list of active aliases, run `alias`.
-#
-# Example aliases
-# alias zshconfig="mate ~/.zshrc"
-# alias ohmyzsh="mate ~/.oh-my-zsh"
 
 # Enable modern command line editing
 bindkey -e  # Use emacs keybindings (more similar to bash defaults)

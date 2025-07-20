@@ -9,6 +9,7 @@ zprofile
 bashrc
 bash_profile
 aliases
+zsh_plugins.txt
 
 # Editor configuration
 vimrc
