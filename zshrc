@@ -1,4 +1,5 @@
 # User configuration
+# zmodload zsh/zprof # Profiling tool, also line at end of file
 
 # AWS Usage tool
 aws_assume() {
@@ -61,8 +62,27 @@ smartresize() {
 export GPG_TTY=$(tty)
 
 export NVM_DIR="$HOME/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
-[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+
+# Lazy-load nvm
+# This defines a function that will be called the first time you run 'nvm', 'node', or 'npm'.
+# It will load the real nvm, and then execute your command.
+# Subsequent calls will be fast since nvm is already loaded.
+lazy_load_nvm() {
+  # Unset the functions to avoid recursive loops
+  unset -f nvm node npm
+
+  # Source nvm scripts
+  [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+  [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
+  
+  # Execute the original command
+  "$@"
+}
+
+# Alias the commands to our lazy-load function
+alias nvm="lazy_load_nvm nvm"
+alias node="lazy_load_nvm node"
+alias npm="lazy_load_nvm npm"
 
 [ -f ~/.fzf.bash ] && source ~/.fzf.bash
 
@@ -117,3 +137,5 @@ fi
 export PATH="/Users/kmuncie/.codeium/windsurf/bin:$PATH"
 
 [[ "$TERM_PROGRAM" == "kiro" ]] && . "$(kiro --locate-shell-integration-path zsh)"
+
+# zprof # Profiling tool, also line at start of file
