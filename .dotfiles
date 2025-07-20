@@ -1,0 +1,25 @@
+# Dotfiles configuration
+# Lines starting with # are comments and will be ignored
+# List one file per line (without the leading dot)
+
+# Shell configuration
+tmux.conf
+zshrc
+zprofile
+bashrc
+bash_profile
+aliases
+
+# Editor configuration
+vimrc
+vim
+
+# Git configuration
+gitconfig
+
+# Terminal configuration
+dir-colors
+wezterm.lua
+
+# Config directories (handled separately)
+# nvim will be symlinked from config/nvim to ~/.config/nvim
