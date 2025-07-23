@@ -16,6 +16,23 @@
 # ZSH_THEME="robbyrussell"
 
 # ------------------------------------------------------------------------------
+# Completion System
+# ------------------------------------------------------------------------------
+# Initialize the completion system
+autoload -Uz compinit
+compinit
+
+# Case insensitive completion
+zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}'
+
+# Menu selection for completions
+zstyle ':completion:*' menu select
+
+# Cache completions
+zstyle ':completion:*' use-cache on
+zstyle ':completion:*' cache-path ~/.zsh/cache
+
+# ------------------------------------------------------------------------------
 # Plugin Manager (Antidote)
 # ------------------------------------------------------------------------------
 source $(brew --prefix)/opt/antidote/share/antidote/antidote.zsh
@@ -23,6 +40,14 @@ source $(brew --prefix)/opt/antidote/share/antidote/antidote.zsh
 # Load plugins from ~/.zsh_plugins.zsh
 # This file is managed by Antidote
 antidote load
+
+# ------------------------------------------------------------------------------
+# Plugin Configuration
+# ------------------------------------------------------------------------------
+# Configure zsh-autosuggestions to not interfere with tab completion
+ZSH_AUTOSUGGEST_CLEAR_WIDGETS+=(expand-or-complete)
+ZSH_AUTOSUGGEST_ACCEPT_WIDGETS=(end-of-line vi-end-of-line vi-add-eol)
+ZSH_AUTOSUGGEST_PARTIAL_ACCEPT_WIDGETS=(forward-char forward-word emacs-forward-word vi-forward-char vi-forward-word vi-forward-blank-word vi-forward-blank-word-end vi-find-next-char vi-find-next-char-skip)
 
 # zsh-nvm plugin config
 # https://github.com/lukechilds/zsh-nvm
@@ -45,6 +70,9 @@ setopt HIST_FIND_NO_DUPS      # Don't show duplicates in search
 # Keybindings
 # ------------------------------------------------------------------------------
 bindkey -e  # Use emacs keybindings (more similar to bash defaults)
+
+# Tab completion
+bindkey '^I' expand-or-complete  # Ensure Tab triggers completion
 
 # Set up Ctrl+R search to search from the start of the line
 bindkey '^R' history-incremental-pattern-search-backward
