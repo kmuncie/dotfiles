@@ -191,7 +191,9 @@ config.keys = {
 		key = "p",
 		mods = "LEADER",
 		-- Present in to our project picker
-		action = choose_project,
+		action = wezterm.action_callback(function(window, pane)
+			window:perform_action(choose_project(), pane)
+		end),
 	},
 	{
 		-- Leader + f : Show workspace fuzzy finder
