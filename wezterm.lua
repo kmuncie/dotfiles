@@ -191,7 +191,7 @@ config.keys = {
 		key = "p",
 		mods = "LEADER",
 		-- Present in to our project picker
-		action = choose_project(),
+		action = choose_project,
 	},
 	{
 		-- Leader + f : Show workspace fuzzy finder
