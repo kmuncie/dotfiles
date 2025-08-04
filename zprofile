@@ -101,6 +101,10 @@ export PATH=${PATH}:./node_modules/.bin
 # Added by Windsurf
 export PATH="/Users/kmuncie/.codeium/windsurf/bin:$PATH"
 
+# Deno
+export DENO_INSTALL="$HOME/.deno"
+export PATH="$DENO_INSTALL/bin:$PATH"
+
 # ------------------------------------------------------------------------------
 # Environment Variables
 # ------------------------------------------------------------------------------
