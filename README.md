@@ -6,7 +6,7 @@ My personal dotfiles, managed with [GNU Stow](https://www.gnu.org/software/stow/
 
 Two profiles are available, each built on a shared `common` package:
 
-- **server** (`common` + `server`) - Minimal bash+vim setup for remote machines. No zsh, no brew dependencies.
+- **server** (`common` + `server`) - Minimal bash+vim setup for remote machines. No zsh, no brew dependencies beyond stow itself.
 - **personal** (`common` + `personal`) - Full desktop setup with zsh, neovim, wezterm, tmux plugins, oh-my-posh, and more.
 
 ### Package Contents
@@ -19,19 +19,70 @@ Two profiles are available, each built on a shared `common` package:
 
 ## Setup
 
-### Prerequisites
+### Server Profile
 
-Install GNU Stow:
+The server profile only requires GNU Stow (and only at install time to create symlinks):
+
 ```bash
-# macOS
-brew install stow
-
 # Debian/Ubuntu
 sudo apt install stow
 
 # Fedora
 sudo dnf install stow
+
+git clone <repo-url> ~/dotfiles
+cd ~/dotfiles
+./install.sh server
 ```
+
+### Personal Profile (macOS)
+
+The personal profile assumes macOS with Homebrew. On a fresh machine:
+
+1. **Install Homebrew** (if not already installed):
+   ```bash
+   /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+   ```
+
+2. **Clone and install dependencies**:
+   ```bash
+   git clone <repo-url> ~/dotfiles
+   cd ~/dotfiles
+   brew bundle          # Installs everything from Brewfile
+   ```
+
+3. **Install dotfile symlinks**:
+   ```bash
+   ./install.sh personal
+   ```
+
+4. **Set zsh as default shell** (if not already):
+   ```bash
+   chsh -s $(which zsh)
+   ```
+
+5. **Initialize tmux plugins** (first time):
+   Open tmux, then press `prefix + I` to install plugins via TPM.
+
+### Key Dependencies (Personal)
+
+These are installed via `brew bundle` from the Brewfile:
+
+| Dependency | Used By |
+|------------|---------|
+| `stow` | Symlink management |
+| `antidote` | Zsh plugin manager (loaded in `.zshrc`) |
+| `oh-my-posh` | Zsh prompt theme |
+| `neovim` | Editor (LazyVim config in `.config/nvim/`) |
+| `wezterm` | Terminal emulator |
+| `tmux` | Terminal multiplexer |
+| `git-delta` | Git pager (configured in `.gitconfig`) |
+| `fzf` | Fuzzy finder |
+| `coreutils` | GNU ls, dircolors (used by `.dir-colors`) |
+| `gnu-sed` | GNU sed |
+| `grep` | GNU grep |
+| `gnupg` + `pinentry-mac` | GPG commit signing (YubiKey) |
+| `granted` | AWS role assumption (`assume` function) |
 
 ### Migrating from the old makesymlinks.sh
 
@@ -39,20 +90,6 @@ sudo dnf install stow
 ./cleanup-legacy.sh   # Remove old symlinks safely
 ./install.sh personal # Install new stow-based symlinks
 ```
-
-### Fresh Install
-
-```bash
-git clone <repo-url> ~/dotfiles
-cd ~/dotfiles
-./install.sh personal   # or: ./install.sh server
-```
-
-The install script will:
-1. Check that GNU Stow is installed
-2. Dry-run to detect conflicts with existing files
-3. Back up any conflicting files to `~/dotfiles_backup_YYYYMMDD_HHMMSS/`
-4. Stow the `common` package plus your chosen profile
 
 ### Uninstall
 
@@ -66,49 +103,41 @@ The install script will:
 
 These files live at the repo root and are referenced by path rather than symlinked:
 
-- `oh-my-posh/` - Prompt themes (referenced by zshrc)
-- `scripts/` - Utility scripts
-- `Brewfile` - Homebrew dependencies (`brew bundle`)
-- `themes.gitconfig` - Git delta themes (included by gitconfig)
-- `neofetch.conf` - Neofetch config (referenced by alias)
-- `.git-autocomplete.sh` - Bash git completion (sourced by bash_profile)
+| File | Purpose |
+|------|---------|
+| `oh-my-posh/` | Prompt themes (referenced by `.zshrc`) |
+| `scripts/` | Utility scripts |
+| `Brewfile` | Homebrew dependencies (`brew bundle`) |
+| `themes.gitconfig` | Git delta themes (included by `.gitconfig`) |
+| `neofetch.conf` | Neofetch config (referenced by alias) |
+| `.git-autocomplete.sh` | Bash git completion (sourced by `.bash_profile`) |
+| `ascii/` | ASCII art |
+| `iterm/` | Legacy iTerm color schemes |
+| `terminatorThemes/` | Legacy Terminator themes |
 
-## 2025 Added PGP Public Key Signing
+## PGP Commit Signing
 
 Setup using the following guide:
 [YubiKey-Guide](https://github.com/drduh/YubiKey-Guide/tree/3912fc0f204cd0c4113bae38e19f68db8cbfa63c)
 
 ## Shell Configuration
 
-This repository uses a structured approach to manage shell settings, splitting
+The personal profile uses a structured approach to manage shell settings, splitting
 them between `.zprofile` and `.zshrc` to ensure correctness and efficiency.
 
 ### `.zprofile` vs. `.zshrc`
 
-   * **`~/.zprofile`**: This file runs **once** at the beginning of a login session.
-    It is the correct place for setting environment variables like `PATH`,
-    `GOPATH`, and `EDITOR`. These variables are set once and inherited by all
+   * **`~/.zprofile`**: Runs **once** at login. Environment variables (`PATH`,
+    `GOPATH`, `EDITOR`), Homebrew initialization. Set once, inherited by all
     child processes.
 
-   * **`~/.zshrc`**: This file runs for **every new interactive shell** (e.g.,
-    opening a new terminal tab). It is used for settings that apply to the
-    interactive experience, such as aliases, functions, keybindings, and the
-    shell prompt (`oh-my-posh`).
+   * **`~/.zshrc`**: Runs for **every interactive shell**. Aliases, functions,
+    keybindings, completion, plugins, prompt.
 
 ### How to Modify Your `PATH`
 
-All `PATH` modifications should be made in **`~/.zprofile`**. This prevents your
+All `PATH` modifications should be made in **`personal/.zprofile`**. This prevents your
 `PATH` from growing incorrectly with every new terminal window.
-
-To add a new directory to your `PATH`, open `~/dotfiles/personal/.zprofile` and add a new
-line in the `PATH Additions` section. Follow the existing format:
-
-  1. **Add a comment** explaining where the new `PATH` entry comes from (e.g.,
-     `# From 'brew install my-new-tool'`).
-  2. **Add the export command**. It's best practice to check if the directory
-     exists before adding it to the `PATH`.
-
-**Example:**
 
 ```shell
 # From `brew install my-new-tool`
@@ -118,25 +147,11 @@ line in the `PATH Additions` section. Follow the existing format:
 
 ## WezTerm Configuration
 
-WezTerm is configured with a comprehensive setup including appearance
-customization, keybindings, project management, and status bar enhancements.
-
-### Features
-
-   * **Nord Color Scheme**: Clean, modern color palette
-   * **FantasqueSansMono Nerd Font**: Crisp monospace font with icon support
-   * **Transparency & Blur**: Subtle background transparency with macOS blur effect
-   * **Leader Key Navigation**: Ctrl+Space leader key for all custom keybindings
-   * **Project Management**: Quick project switching with fuzzy search
-   * **Workspace Support**: Multiple workspaces with easy switching
-   * **Custom Status Bar**: Gradient-styled status bar showing workspace, time, and
-    hostname
-
 ### Key Bindings
 
 All custom keybindings use the leader key (Ctrl+Space) followed by another key:
 
-   * **Leader + \**: Split horizontally (new pane to the right)
+   * **Leader + \\**: Split horizontally (new pane to the right)
    * **Leader + -**: Split vertically (new pane below)
    * **Leader + h/j/k/l**: Navigate between panes (vim-style)
    * **Leader + r**: Enter resize mode (then use h/j/k/l to resize)
@@ -147,5 +162,4 @@ All custom keybindings use the leader key (Ctrl+Space) followed by another key:
 ### Project Management
 
 The configuration automatically discovers projects in the `~/code` directory and
-allows quick switching between them. Each project opens in its own workspace for
-better organization.
+allows quick switching between them. Each project opens in its own workspace.
