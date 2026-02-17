@@ -120,6 +120,7 @@ fi
 
 # GPG
 export GPG_TTY=$(tty)
+export KEYID="C37CD320884F61A9"
 
 # Set MANPATH for coreutils
 [ -d "${HOMEBREW_PREFIX}/opt/coreutils/libexec/gnuman" ] && export MANPATH="${HOMEBREW_PREFIX}/opt/coreutils/libexec/gnuman:${MANPATH}"
