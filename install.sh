@@ -8,6 +8,20 @@ DOTFILES_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROFILE="$1"
 
 # ------------------------------------------------------------------------------
+# Ensure Homebrew is on PATH (may be missing if dotfiles were just cleaned up)
+# ------------------------------------------------------------------------------
+
+if ! command -v brew &> /dev/null; then
+    if [[ -f /opt/homebrew/bin/brew ]]; then
+        eval "$(/opt/homebrew/bin/brew shellenv)"
+    elif [[ -f /home/linuxbrew/.linuxbrew/bin/brew ]]; then
+        eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+    elif [[ -f /usr/local/bin/brew ]]; then
+        eval "$(/usr/local/bin/brew shellenv)"
+    fi
+fi
+
+# ------------------------------------------------------------------------------
 # Validation
 # ------------------------------------------------------------------------------
 
