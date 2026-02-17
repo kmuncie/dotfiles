@@ -68,7 +68,9 @@ gfu() {
 # ------------------------------------------------------------------------------
 
 # AWS assume role via granted.dev
-assume() {
+# Uses 'function' keyword without parens to avoid zsh alias expansion conflict
+# (granted.dev installs 'alias assume="source assume"')
+function assume {
    source assume "$@"
    # Serverless (SLS) fails when AWS_PROFILE is set, so we unset it here
    unset AWS_PROFILE
