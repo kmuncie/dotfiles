@@ -1,22 +1,23 @@
 #!/usr/bin/env bash
+# Bash login config for personal machines.
+# Sources shared .profile for PATH and environment, then adds bash-specific bits.
 
-# echo "Loading ${HOME}/.bash_profile"
-
-# Enable bash-completion
-[[ -r "/opt/homebrew/etc/profile.d/bash_completion.sh" ]] && . "/opt/homebrew/etc/profile.d/bash_completion.sh"
-
+# Shared PATH and environment setup (also sourced by .zprofile)
+if [ -f ~/.profile ]; then
+    . ~/.profile
+fi
 
 if [ -f ~/.bashrc ]; then
     source ~/.bashrc
 fi
 
-# echo "Exporting PATH's"
+# Enable bash-completion
+[[ -r "/opt/homebrew/etc/profile.d/bash_completion.sh" ]] && . "/opt/homebrew/etc/profile.d/bash_completion.sh"
 
-test -e ~/.dir-colors && \
-   eval `dircolors -b ~/.dir-colors`
+# Dircolors (GNU coreutils)
+test -e ~/.dir-colors && eval "$(dircolors -b ~/.dir-colors)"
 
+# Git autocomplete
 if [ -f ~/dotfiles/.git-autocomplete.sh ]; then
    . ~/dotfiles/.git-autocomplete.sh
 fi
-
-[ -f "$HOME/.cargo/env" ] && . "$HOME/.cargo/env"

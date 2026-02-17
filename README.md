@@ -122,22 +122,30 @@ Setup using the following guide:
 
 ## Shell Configuration
 
-The personal profile uses a structured approach to manage shell settings, splitting
-them between `.zprofile` and `.zshrc` to ensure correctness and efficiency.
+The personal profile uses a layered approach to shell configuration:
 
-### `.zprofile` vs. `.zshrc`
+### File Roles
 
-   * **`~/.zprofile`**: Runs **once** at login. Environment variables (`PATH`,
-    `GOPATH`, `EDITOR`), Homebrew initialization. Set once, inherited by all
-    child processes.
+   * **`~/.profile`**: Shared login environment sourced by both `.zprofile` and
+    `.bash_profile`. Contains PATH, Homebrew init, environment variables
+    (`EDITOR`, `GOPATH`, `GPG_TTY`). This is the single source of truth for
+    environment setup — both shells get identical PATH and variables.
 
-   * **`~/.zshrc`**: Runs for **every interactive shell**. Aliases, functions,
+   * **`~/.zprofile`**: Zsh login wrapper. Sources `.profile`.
+
+   * **`~/.bash_profile`**: Bash login wrapper. Sources `.profile`, then adds
+    bash-specific bits (bash-completion, dircolors, git-autocomplete).
+
+   * **`~/.zshrc`**: Runs for **every interactive zsh**. Aliases, functions,
     keybindings, completion, plugins, prompt.
+
+   * **`~/.bashrc`**: Runs for **every interactive bash**. Aliases, PS1, history.
 
 ### How to Modify Your `PATH`
 
-All `PATH` modifications should be made in **`personal/.zprofile`**. This prevents your
-`PATH` from growing incorrectly with every new terminal window.
+All `PATH` modifications should be made in **`personal/.profile`**. This keeps
+PATH consistent across both zsh and bash, and prevents it from growing
+incorrectly with every new terminal window.
 
 ```shell
 # From `brew install my-new-tool`
