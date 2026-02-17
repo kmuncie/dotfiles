@@ -1,5 +1,14 @@
 .DS_Store
-vim/.netrwhist
-vim/plugged
-tmux/resurrect
 *.swp
+
+# Vim plugin data (managed by vim-plug, not checked in)
+common/.vim/plugged
+common/.vim/.netrwhist
+
+# Tmux session data
+personal/.tmux/resurrect
+tmux/resurrect
+
+# Zsh compiled/cached files
+personal/.zsh_plugins.zsh
+personal/.zcompdump*
