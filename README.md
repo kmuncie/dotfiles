@@ -91,6 +91,20 @@ These are installed via `brew bundle` from the Brewfile:
 ./install.sh personal # Install new stow-based symlinks
 ```
 
+### Updating After Changes
+
+The install script is idempotent — safe to re-run at any time:
+
+```bash
+./install.sh personal
+```
+
+**When you need to re-run:** only when a **new file** is added to a stow package
+(e.g. adding `personal/.sometool`). The new file needs a new symlink.
+
+**When you don't need to re-run:** editing existing files. Since stow creates
+symlinks, changes to files in the repo are picked up immediately.
+
 ### Uninstall
 
 ```bash

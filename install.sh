@@ -54,38 +54,36 @@ echo ""
 # ------------------------------------------------------------------------------
 
 echo "Running dry-run to check for conflicts..."
-CONFLICTS=""
+CONFLICT_FILES=()
 for pkg in "${PACKAGES[@]}"; do
     if ! DRY_OUTPUT=$(stow -d "$DOTFILES_DIR" -t "$HOME" --no --verbose "$pkg" 2>&1); then
-        CONFLICTS+="$DRY_OUTPUT"$'\n'
+        # Only extract actual conflicts (not normal LINK/UNLINK operations)
+        while IFS= read -r line; do
+            if [[ "$line" =~ \*\ existing\ target\ is.*:\ (.*) ]]; then
+                CONFLICT_FILES+=("${BASH_REMATCH[1]}")
+            fi
+        done <<< "$DRY_OUTPUT"
     fi
 done
 
-if [[ -n "$CONFLICTS" ]]; then
-    echo "Conflicts detected:"
-    echo "$CONFLICTS"
-
-    # Extract conflicting file paths and back them up
+if [[ ${#CONFLICT_FILES[@]} -gt 0 ]]; then
     BACKUP_DIR="$HOME/dotfiles_backup_$(date +%Y%m%d_%H%M%S)"
-    echo "Backing up conflicting files to: $BACKUP_DIR"
+    echo "Conflicts detected. Backing up to: $BACKUP_DIR"
     mkdir -p "$BACKUP_DIR"
 
-    # Parse stow conflict output for existing target paths
-    while IFS= read -r line; do
-        # Stow conflict lines look like: "* existing target is neither a link nor a directory: .bashrc"
-        if [[ "$line" =~ existing\ target.*:\ (.*) ]]; then
-            TARGET="${BASH_REMATCH[1]}"
-            SOURCE="$HOME/$TARGET"
-            if [[ -e "$SOURCE" || -L "$SOURCE" ]]; then
-                BACKUP_PATH="$BACKUP_DIR/$TARGET"
-                mkdir -p "$(dirname "$BACKUP_PATH")"
-                echo "  Backing up: $SOURCE -> $BACKUP_PATH"
-                mv "$SOURCE" "$BACKUP_PATH"
-            fi
+    for TARGET in "${CONFLICT_FILES[@]}"; do
+        SOURCE="$HOME/$TARGET"
+        if [[ -e "$SOURCE" || -L "$SOURCE" ]]; then
+            BACKUP_PATH="$BACKUP_DIR/$TARGET"
+            mkdir -p "$(dirname "$BACKUP_PATH")"
+            echo "  Backing up: $SOURCE -> $BACKUP_PATH"
+            mv "$SOURCE" "$BACKUP_PATH"
         fi
-    done <<< "$CONFLICTS"
+    done
 
     echo ""
+else
+    echo "No conflicts."
 fi
 
 # ------------------------------------------------------------------------------
