@@ -18,9 +18,13 @@
 # ------------------------------------------------------------------------------
 # Completion System
 # ------------------------------------------------------------------------------
-# Initialize the completion system
+# Initialize the completion system with daily cache rebuild
 autoload -Uz compinit
-compinit
+if [[ -n ~/.zcompdump(#qN.mh+24) ]]; then
+  compinit
+else
+  compinit -C
+fi
 
 # Case insensitive completion
 zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}'
@@ -43,7 +47,17 @@ export NVM_AUTO_USE=true
 # ------------------------------------------------------------------------------
 # Plugin Manager (Antidote)
 # ------------------------------------------------------------------------------
-source $(brew --prefix)/opt/antidote/share/antidote/antidote.zsh
+# Hardcoded brew prefix paths to avoid slow $(brew --prefix) subshell
+if [[ -f /opt/homebrew/opt/antidote/share/antidote/antidote.zsh ]]; then
+  # macOS Apple Silicon
+  source /opt/homebrew/opt/antidote/share/antidote/antidote.zsh
+elif [[ -f /home/linuxbrew/.linuxbrew/opt/antidote/share/antidote/antidote.zsh ]]; then
+  # Linux
+  source /home/linuxbrew/.linuxbrew/opt/antidote/share/antidote/antidote.zsh
+elif [[ -f /usr/local/opt/antidote/share/antidote/antidote.zsh ]]; then
+  # macOS Intel
+  source /usr/local/opt/antidote/share/antidote/antidote.zsh
+fi
 
 # Load plugins from ~/.zsh_plugins.zsh
 # This file is managed by Antidote
