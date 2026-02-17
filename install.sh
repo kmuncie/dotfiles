@@ -56,10 +56,13 @@ echo ""
 echo "Running dry-run to check for conflicts..."
 CONFLICT_FILES=()
 for pkg in "${PACKAGES[@]}"; do
-    if ! DRY_OUTPUT=$(stow -d "$DOTFILES_DIR" -t "$HOME" --no --verbose "$pkg" 2>&1); then
-        # Only extract actual conflicts (not normal LINK/UNLINK operations)
+    # Use --restow --no to match the actual stow operation
+    if ! DRY_OUTPUT=$(stow -d "$DOTFILES_DIR" -t "$HOME" --restow --no --verbose "$pkg" 2>&1); then
+        # Match all conflict patterns stow may produce
         while IFS= read -r line; do
-            if [[ "$line" =~ \*\ existing\ target\ is.*:\ (.*) ]]; then
+            if [[ "$line" =~ \*.*over\ existing\ target\ (.+)\ since ]]; then
+                CONFLICT_FILES+=("${BASH_REMATCH[1]}")
+            elif [[ "$line" =~ \*\ existing\ target\ is.*:\ (.*) ]]; then
                 CONFLICT_FILES+=("${BASH_REMATCH[1]}")
             fi
         done <<< "$DRY_OUTPUT"
