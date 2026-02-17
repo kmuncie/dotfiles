@@ -12,14 +12,11 @@ fi
 
 # echo "Exporting PATH's"
 
-if [ -f ~/dotfiles/path.sh ]; then
-   source ~/dotfiles/path.sh
-fi
-
-test -e ~/.dircolors && \
-   eval `dircolors -b ~/.dircolors`
+test -e ~/.dir-colors && \
+   eval `dircolors -b ~/.dir-colors`
 
 if [ -f ~/dotfiles/.git-autocomplete.sh ]; then
    . ~/dotfiles/.git-autocomplete.sh
 fi
 
+[ -f "$HOME/.cargo/env" ] && . "$HOME/.cargo/env"

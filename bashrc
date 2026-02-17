@@ -3,7 +3,7 @@
 # echo "Loading ${HOME}/.bashrc"
 
 # Get my great aliases
-if [ -f ~/.bash_aliases ]; then
+if [ -f ~/.aliases ]; then
    . ~/.aliases
 fi
 
@@ -16,7 +16,7 @@ fi
 unset SSH_ASKPASS
 
 # don't put duplicate lines in the history
-export HISTCONTROL=ignorebothexport
+export HISTCONTROL=ignoreboth
 export HISTIGNORE=ls:cd:pwd:
 export HISTSIZE=10000
 export HISTFILESIZE=20000
@@ -113,3 +113,4 @@ export NVM_DIR="$HOME/.nvm"
 [ -f ~/.fzf.bash ] && source ~/.fzf.bash
 
 [[ "$TERM_PROGRAM" == "kiro" ]] && . "$(kiro --locate-shell-integration-path bash)"
+[ -f "$HOME/.cargo/env" ] && . "$HOME/.cargo/env"

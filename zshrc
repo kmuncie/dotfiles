@@ -33,26 +33,29 @@ zstyle ':completion:*' use-cache on
 zstyle ':completion:*' cache-path ~/.zsh/cache
 
 # ------------------------------------------------------------------------------
+# Plugin Configuration (must be set BEFORE plugins load)
+# ------------------------------------------------------------------------------
+# zsh-nvm plugin config
+# https://github.com/lukechilds/zsh-nvm
+export NVM_LAZY_LOAD=true
+export NVM_AUTO_USE=true
+
+# ------------------------------------------------------------------------------
 # Plugin Manager (Antidote)
 # ------------------------------------------------------------------------------
 source $(brew --prefix)/opt/antidote/share/antidote/antidote.zsh
 
 # Load plugins from ~/.zsh_plugins.zsh
 # This file is managed by Antidote
-antidote load
+source ~/.zsh_plugins.zsh
 
 # ------------------------------------------------------------------------------
-# Plugin Configuration
+# Plugin Configuration (post-load)
 # ------------------------------------------------------------------------------
 # Configure zsh-autosuggestions to not interfere with tab completion
 ZSH_AUTOSUGGEST_CLEAR_WIDGETS+=(expand-or-complete)
 ZSH_AUTOSUGGEST_ACCEPT_WIDGETS=(end-of-line vi-end-of-line vi-add-eol)
 ZSH_AUTOSUGGEST_PARTIAL_ACCEPT_WIDGETS=(forward-char forward-word emacs-forward-word vi-forward-char vi-forward-word vi-forward-blank-word vi-forward-blank-word-end vi-find-next-char vi-find-next-char-skip)
-
-# zsh-nvm plugin config
-# https://github.com/lukechilds/zsh-nvm
-export NVM_LAZY_LOAD=true
-export NVM_AUTO_USE=true
 
 # ------------------------------------------------------------------------------
 # History Configuration
@@ -156,7 +159,7 @@ smartresize() {
 # ------------------------------------------------------------------------------
 
 # fzf
-[ -f ~/.fzf.bash ] && source ~/.fzf.bash
+[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 
 # oh-my-posh (prompt)
 if [ "$TERM_PROGRAM" != "Apple_Terminal" ]; then
@@ -165,6 +168,9 @@ fi
 
 # Kiro terminal integration
 [[ "$TERM_PROGRAM" == "kiro" ]] && . "$(kiro --locate-shell-integration-path zsh)"
+
+# Rust/Cargo
+[ -f "$HOME/.cargo/env" ] && . "$HOME/.cargo/env"
 
 # Profiling - uncomment to use
 # zmodload zsh/zprof
