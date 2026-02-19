@@ -105,6 +105,17 @@ fi
 # Kiro terminal integration
 [[ "$TERM_PROGRAM" == "kiro" ]] && . "$(kiro --locate-shell-integration-path zsh)"
 
+# WezTerm shell integration - report current directory via OSC 7
+# This enables tab titles to show the current working directory
+if [[ "$TERM_PROGRAM" == "WezTerm" ]]; then
+   _osc7_cwd() {
+      printf '\e]7;file://%s%s\e\\' "$HOST" "$PWD"
+   }
+   autoload -Uz add-zsh-hook
+   add-zsh-hook chpwd _osc7_cwd
+   _osc7_cwd
+fi
+
 # Rust/Cargo
 [ -f "$HOME/.cargo/env" ] && . "$HOME/.cargo/env"
 

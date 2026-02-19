@@ -218,6 +218,41 @@ config.key_tables = {
 }
 
 -- ============================================================================
+-- TAB TITLE CONFIGURATION
+-- ============================================================================
+
+-- Extracts the last path segment from a URL or file path
+local function basename(s)
+   return string.gsub(s, "(.*[/\\])(.*)", "%2")
+end
+
+-- Format tab titles to show useful context: process name and current directory
+wezterm.on("format-tab-title", function(tab)
+   local pane = tab.active_pane
+
+   -- Get the foreground process name (e.g., "zsh", "claude", "node")
+   local process = basename(pane.foreground_process_name or "")
+
+   -- Get the current working directory folder name from OSC 7
+   local cwd = ""
+   local cwd_uri = pane.current_working_dir
+   if cwd_uri then
+      local dir = cwd_uri.file_path or tostring(cwd_uri)
+      -- Strip trailing slash, then extract last folder name
+      dir = dir:gsub("/$", "")
+      cwd = basename(dir)
+   end
+
+   -- Build the tab title: "idx: process ~ directory"
+   local title = string.format("%d: %s", tab.tab_index + 1, process)
+   if cwd ~= "" then
+      title = title .. " ~ " .. cwd
+   end
+
+   return title
+end)
+
+-- ============================================================================
 -- STATUS BAR CONFIGURATION
 -- ============================================================================
 
