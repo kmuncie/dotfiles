@@ -25,14 +25,6 @@ zstyle ':completion:*' use-cache on
 zstyle ':completion:*' cache-path ~/.zsh/cache
 
 # ------------------------------------------------------------------------------
-# Plugin Configuration (must be set BEFORE plugins load)
-# ------------------------------------------------------------------------------
-# zsh-nvm plugin config
-# https://github.com/lukechilds/zsh-nvm
-export NVM_LAZY_LOAD=true
-export NVM_AUTO_USE=true
-
-# ------------------------------------------------------------------------------
 # Plugin Manager (Antidote)
 # ------------------------------------------------------------------------------
 # Hardcoded brew prefix paths to avoid slow $(brew --prefix) subshell
@@ -93,6 +85,11 @@ fi
 # ------------------------------------------------------------------------------
 # Tool-specific Configurations
 # ------------------------------------------------------------------------------
+
+# NVM (Node Version Manager)
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+[ -s "$NVM_DIR/bash_completion" ] && . "$NVM_DIR/bash_completion"
 
 # fzf
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
