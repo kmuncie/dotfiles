@@ -48,8 +48,13 @@ source ~/.zsh_plugins.zsh
 # ------------------------------------------------------------------------------
 # Configure zsh-autosuggestions to not interfere with tab completion
 ZSH_AUTOSUGGEST_CLEAR_WIDGETS+=(expand-or-complete)
+
+# Accept the WHOLE suggestion (bound to End / Ctrl+E by default).
 ZSH_AUTOSUGGEST_ACCEPT_WIDGETS=(end-of-line vi-end-of-line vi-add-eol)
-ZSH_AUTOSUGGEST_PARTIAL_ACCEPT_WIDGETS=(forward-char forward-word emacs-forward-word vi-forward-char vi-forward-word vi-forward-blank-word vi-forward-blank-word-end vi-find-next-char vi-find-next-char-skip)
+
+# Accept only the NEXT WORD of the suggestion. forward-word is what the right
+# arrow runs (see the custom widget in Keybindings) when a suggestion is shown.
+ZSH_AUTOSUGGEST_PARTIAL_ACCEPT_WIDGETS=(forward-word emacs-forward-word vi-forward-word vi-forward-word-end vi-forward-blank-word vi-forward-blank-word-end)
 
 # ------------------------------------------------------------------------------
 # History Configuration
@@ -70,6 +75,21 @@ bindkey -e  # Use emacs keybindings (more similar to bash defaults)
 
 # Tab completion
 bindkey '^I' expand-or-complete  # Ensure Tab triggers completion
+
+# Right arrow: accept one WORD of the autosuggestion when one is showing at the
+# end of the line; otherwise behave as a normal one-character cursor move. This
+# keeps suggestion-acceptance fast (a word per press) without breaking cursor
+# navigation when editing inside text you've already typed.
+_accept_word_or_forward_char() {
+  if [[ -n "$POSTDISPLAY" ]]; then
+    zle forward-word
+  else
+    zle forward-char
+  fi
+}
+zle -N _accept_word_or_forward_char
+bindkey '^[[C' _accept_word_or_forward_char  # right arrow (normal cursor mode)
+bindkey '^[OC' _accept_word_or_forward_char  # right arrow (application mode)
 
 # Set up Ctrl+R search to search from the start of the line
 bindkey '^R' history-incremental-pattern-search-backward
