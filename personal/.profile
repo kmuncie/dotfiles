@@ -88,6 +88,11 @@ if [ -d "$HOME/bin" ] ; then
    export PATH="$HOME/bin:$PATH"
 fi
 
+# Claude Code (and other tools that install to ~/.local/bin)
+if [ -d "$HOME/.local/bin" ] ; then
+   export PATH="$HOME/.local/bin:$PATH"
+fi
+
 # Setup Go PATH variables https://linode.com/docs/development/go/install-go-on-ubuntu/
 export GOPATH=$HOME/go
 export PATH=$PATH:/usr/local/go/bin:$GOPATH/bin
