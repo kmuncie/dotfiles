@@ -140,10 +140,17 @@ The personal profile uses a layered approach to shell configuration:
 
 ### File Roles
 
-   * **`~/.profile`**: Shared login environment sourced by both `.zprofile` and
+   * **`~/.profile`**: Shared environment sourced by `.zshenv`, `.zprofile`, and
     `.bash_profile`. Contains PATH, Homebrew init, environment variables
     (`EDITOR`, `GOPATH`, `GPG_TTY`). This is the single source of truth for
-    environment setup — both shells get identical PATH and variables.
+    environment setup — every shell gets identical PATH and variables. Safe to
+    source more than once: the PATH block hard-resets `PATH` before rebuilding
+    it, so the result is deterministic rather than cumulative.
+
+   * **`~/.zshenv`**: Runs for **every** zsh — login, interactive, *and*
+    non-interactive (scripts, cron, and editor-spawned shells like Windsurf's
+    Cascade terminal). Sources `.profile` so PATH exists even when no login or
+    interactive file runs. See "Why PATH is sourced in more than one place" below.
 
    * **`~/.zprofile`**: Zsh login wrapper. Sources `.profile`.
 
@@ -166,6 +173,34 @@ incorrectly with every new terminal window.
 # This tool needs its bin directory in the PATH.
 [ -d "/path/to/my-new-tool/bin" ] && export PATH="/path/to/my-new-tool/bin:$PATH"
 ```
+
+### Why PATH is sourced in more than one place
+
+`.profile` is sourced from both `.zshenv` and `.zprofile`. This looks like
+duplication but each call solves a distinct macOS quirk — removing either one
+reintroduces a real bug:
+
+1. **`.zshenv` → guarantees PATH exists at all.** zsh only reads `.zshenv` for
+   non-login, non-interactive shells. Editors that spawn commands in a bare
+   shell — notably **Windsurf's Cascade terminal**, but also cron and plain
+   scripts — never run `.zprofile` or `.zshrc`. Without sourcing `.profile`
+   here, `/usr/local/bin` is missing and tools installed there (e.g. the
+   1Password `op` CLI) silently fail to resolve.
+
+2. **`.zprofile` → re-asserts PATH *ordering* after `path_helper`.** macOS's
+   `/etc/zprofile` runs `path_helper`, which rebuilds PATH from `/etc/paths`
+   and runs *after* `.zshenv`. It shoves the system `/usr/bin` ahead of our
+   Homebrew GNU tools (`coreutils`, `gnu-sed`, `grep`), so `sed`/`grep`/`ls`
+   would resolve to the BSD versions. Re-sourcing `.profile` from `.zprofile`
+   (which runs *after* `path_helper`) restores the intended ordering.
+
+The only single-source alternative is disabling `path_helper` by editing the
+system file `/etc/zprofile` — more invasive and lost on OS updates, so we keep
+the two-source approach instead.
+
+> **Note:** `~/.zshenv` is currently a plain file in `$HOME`, not yet a stowed
+> file in `personal/`. To make the `.zshenv → .profile` source survive a fresh
+> install, move it into the `personal` package and re-run `./install.sh personal`.
 
 ## WezTerm Configuration
 
