@@ -5,7 +5,6 @@
 # ------------------------------------------------------------------------------
 # Taps
 # ------------------------------------------------------------------------------
-tap "apple/apple", "http://github.com/apple/homebrew-apple"
 tap "common-fate/granted"
 tap "homebrew/services"
 tap "jandedobbeleer/oh-my-posh"
