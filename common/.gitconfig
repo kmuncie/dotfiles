@@ -66,3 +66,9 @@
    gpgsign = true
 [tag]
    gpgSign = true
+
+# Machine-local / work-specific config (URL rewrites, work email, etc.).
+# Untracked and loaded last so it can override anything above. Missing file is
+# silently ignored, so this is safe on machines without it.
+[include]
+   path = ~/.gitconfig.local
