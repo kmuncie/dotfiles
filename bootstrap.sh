@@ -100,6 +100,14 @@ fi
 # 6. Dotfile symlinks via stow
 # ------------------------------------------------------------------------------
 
+# brew bundle aborts its install phase if ANY download fails (e.g. a cask
+# download times out), which can leave even stow uninstalled. stow is required
+# for the symlinks below, so guarantee it directly.
+if ! command -v stow &> /dev/null; then
+    log "Ensuring stow is installed..."
+    brew install stow
+fi
+
 log "Installing '$PROFILE' dotfile symlinks..."
 "$DOTFILES_DIR/install.sh" "$PROFILE"
 
