@@ -110,7 +110,7 @@ cask "betterdisplay"
 cask "calibre"
 cask "claude-code"
 cask "discord"
-cask "docker-desktop"
+# cask "docker-desktop"     # replaced by OrbStack (provides docker engine + CLI); re-enable if you leave OrbStack
 cask "figma"
 cask "firefox@developer-edition"
 cask "google-chrome"
