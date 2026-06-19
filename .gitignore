@@ -5,8 +5,9 @@
 common/.vim/plugged
 common/.vim/.netrwhist
 
-# Tmux session data
+# Tmux session data and TPM-managed plugins (bootstrapped by bootstrap.sh)
 personal/.tmux/resurrect
+personal/.tmux/plugins/
 
 # Zsh compiled/cached files
 personal/.zsh_plugins.zsh

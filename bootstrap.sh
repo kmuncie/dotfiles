@@ -117,6 +117,26 @@ fi
 # =============================================================================
 # Done
 # =============================================================================
+# =============================================================================
+# PHASE 4 — Post-install: tool-specific bootstrap steps.
+# =============================================================================
+
+# Clone TPM so tmux plugins can be installed on first launch.
+TPM_DIR="$HOME/.tmux/plugins/tpm"
+if [[ ! -f "$TPM_DIR/tpm" ]]; then
+    log "Cloning TPM (Tmux Plugin Manager)..."
+    rm -rf "$TPM_DIR"
+    git clone https://github.com/tmux-plugins/tpm "$TPM_DIR" || warn "Failed to clone TPM — run manually: git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm"
+else
+    log "TPM already installed."
+fi
+
+# Build bat theme cache so Catppuccin Mocha is available.
+if command -v bat &>/dev/null; then
+    log "Building bat theme cache..."
+    bat cache --build || warn "bat cache --build failed; run manually after install."
+fi
+
 log "Bootstrap complete."
 echo
 echo "Next steps (see docs/new-device.md):"

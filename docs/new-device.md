@@ -48,9 +48,21 @@ you to opt into.
 
 ## 4. tmux plugins
 
-Open tmux and press `prefix + I` (capital i) to install plugins via TPM.
+TPM is cloned automatically by `bootstrap.sh`. Open tmux and press `Ctrl+B I`
+(capital i) to install plugins (catppuccin, tmux-sensible, tmux-resurrect).
 
-## 5. SSH key via 1Password
+## 5. Theme post-install
+
+The bootstrap runs `bat cache --build` automatically, but if you need to rerun it:
+
+```bash
+bat cache --build   # registers the Catppuccin Mocha bat theme
+```
+
+**Obsidian:** Settings → Appearance → Themes → Browse → search "Catppuccin" →
+install. Select "Catppuccin" and choose the Mocha flavor.
+
+## 6. SSH key via 1Password
 
 SSH auth uses a key stored in 1Password and served by its built-in SSH agent
 (Touch ID per use, no private key on disk, synced across devices). The bootstrap
@@ -77,7 +89,7 @@ clones over HTTPS, so this is only needed for pushing.
 SSH auth lives in 1Password; GPG/YubiKey (next) stays for commit *signing* —
 two separate identities.
 
-## 6. GPG / YubiKey commit signing
+## 7. GPG / YubiKey commit signing
 
 Follow [`docs/gpg-guide.md`](gpg-guide.md) and the
 [YubiKey-Guide](https://github.com/drduh/YubiKey-Guide). Verify with:
@@ -87,7 +99,7 @@ echo "test" | gpg --clearsign
 git config --get user.signingkey
 ```
 
-## 7. App sign-ins & GUI-only settings
+## 8. App sign-ins & GUI-only settings
 
 These can't be scripted — do them by hand:
 
@@ -110,7 +122,7 @@ Install these by hand — no working cask or `mas` entry:
 - **Ivanti Secure Access** — work-provided VPN client.
 - **Jagex Launcher**, **OpenTTD** — game launchers, direct download.
 
-## 8. Verify
+## 9. Verify
 
 - Open a fresh terminal — prompt (oh-my-posh), aliases, and PATH should all work.
 - `brew doctor` should be clean.
