@@ -119,7 +119,7 @@ cask "grandperspective"
 cask "imageoptim"
 cask "iterm2"
 cask "maccy"
-cask "mactex"
+# cask "mactex"            # ~5GB TeX distribution — re-enable if you need LaTeX
 cask "microsoft-auto-update"
 cask "microsoft-onenote"
 cask "microsoft-teams"
