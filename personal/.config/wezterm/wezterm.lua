@@ -46,8 +46,8 @@ config.window_decorations = "RESIZE"
 config.window_frame = {
    -- Using the same font family as terminal but with bold weight
    -- for better visibility in the tab bar
-   font = wezterm.font({ family = "FantasqueSansMono Nerd Font", weight = "Bold" }),
-   font_size = 15,
+   font = wezterm.font({ family = "FantasqueSansM Nerd Font", weight = "Bold" }),
+   font_size = 12,
 }
 
 -- ============================================================================
