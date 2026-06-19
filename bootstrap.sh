@@ -34,9 +34,14 @@ warn() { printf '\033[1;33m!!!\033[0m %s\n' "$*"; }
 
 if ! xcode-select -p &> /dev/null; then
     log "Installing Xcode Command Line Tools..."
-    xcode-select --install
-    warn "Finish the GUI installer, then re-run this script."
-    exit 0
+    xcode-select --install &> /dev/null || true
+    warn "A GUI installer opened. Click Install and accept the license."
+    warn "Waiting for it to finish (Ctrl-C to abort)..."
+    # Block until the install completes so the rest of the script runs in one shot.
+    until xcode-select -p &> /dev/null; do
+        sleep 10
+    done
+    log "Xcode Command Line Tools installed."
 else
     log "Xcode Command Line Tools present."
 fi
