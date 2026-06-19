@@ -20,7 +20,7 @@ config.color_scheme = "nord"
 
 -- Font configuration
 -- Choose your favourite font, make sure it's installed on your machine
-config.font = wezterm.font({ family = "FantasqueSansMono Nerd Font" })
+config.font = wezterm.font({ family = "FantasqueSansM Nerd Font Mono" })
 -- And a font size that won't have you squinting
 config.font_size = 16
 
