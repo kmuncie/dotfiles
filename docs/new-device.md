@@ -50,7 +50,34 @@ you to opt into.
 
 Open tmux and press `prefix + I` (capital i) to install plugins via TPM.
 
-## 5. GPG / YubiKey commit signing
+## 5. SSH key via 1Password
+
+SSH auth uses a key stored in 1Password and served by its built-in SSH agent
+(Touch ID per use, no private key on disk, synced across devices). The bootstrap
+clones over HTTPS, so this is only needed for pushing.
+
+1. **Install + sign into 1Password** (the Brewfile installs it).
+2. **Enable the agent:** 1Password → Settings → Developer → turn on
+   *"Use the SSH agent"* (and *"Integrate with 1Password CLI"* if you want `op`).
+3. **Create the key:** 1Password → New Item → SSH Key → generate an Ed25519 key.
+4. **Point SSH at the 1Password agent.** Add to `~/.ssh/config`:
+   ```
+   Host *
+     IdentityAgent "~/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"
+   ```
+5. **Add the public key to GitHub:** copy it from 1Password → github.com →
+   Settings → SSH and GPG keys → New SSH key (Authentication type). Or:
+   `op item get "GitHub SSH" --fields public_key | gh ssh-key add -`
+6. **Switch the repo remote to SSH:**
+   ```bash
+   git -C ~/dotfiles remote set-url origin git@github.com:kmuncie/dotfiles.git
+   ```
+7. **Test:** `ssh -T git@github.com` → should greet you by username.
+
+SSH auth lives in 1Password; GPG/YubiKey (next) stays for commit *signing* —
+two separate identities.
+
+## 6. GPG / YubiKey commit signing
 
 Follow [`docs/gpg-guide.md`](gpg-guide.md) and the
 [YubiKey-Guide](https://github.com/drduh/YubiKey-Guide). Verify with:
@@ -60,7 +87,7 @@ echo "test" | gpg --clearsign
 git config --get user.signingkey
 ```
 
-## 6. App sign-ins & GUI-only settings
+## 7. App sign-ins & GUI-only settings
 
 These can't be scripted — do them by hand:
 
@@ -83,7 +110,7 @@ Install these by hand — no working cask or `mas` entry:
 - **Ivanti Secure Access** — work-provided VPN client.
 - **Jagex Launcher**, **OpenTTD** — game launchers, direct download.
 
-## 7. Verify
+## 8. Verify
 
 - Open a fresh terminal — prompt (oh-my-posh), aliases, and PATH should all work.
 - `brew doctor` should be clean.

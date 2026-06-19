@@ -38,10 +38,14 @@ cd ~/dotfiles
 ### Personal Profile (macOS)
 
 **Fresh Macbook? Use the one-shot bootstrap.** A brand-new Mac has no git, so
-don't clone first — `curl` the bootstrap (curl is part of base macOS). It
-installs Xcode Command Line Tools, Homebrew, a **brew-managed git**, then clones
-this repo *with that git*, installs every Brewfile package and the dotfile
-symlinks, and sets zsh as the default shell — idempotent, safe to re-run:
+don't clone first — `curl` the bootstrap (curl is part of base macOS). It is
+**dotfiles-first**: it installs Xcode Command Line Tools, Homebrew, and a
+**brew-managed git + stow**, clones this repo *with that git*, then puts your
+symlinks in place and sets zsh as the default shell — so you have a working
+shell immediately. Only *after* that does it install the full Brewfile package
+set, as a best-effort step: a failed package download (a flaky cask CDN, say)
+just gets reported and never blocks your shell or dotfiles. Idempotent and safe
+to re-run:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/kmuncie/dotfiles/master/bootstrap.sh -o /tmp/bootstrap.sh
@@ -73,24 +77,29 @@ checklist (GPG/YubiKey, app sign-ins, GUI-only settings).
    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
    ```
 
-2. **Clone and install dependencies**:
+2. **Install the seed tools, then clone**:
    ```bash
+   brew install git stow
    git clone <repo-url> ~/dotfiles
    cd ~/dotfiles
-   brew bundle          # Installs everything from Brewfile
    ```
 
-3. **Install dotfile symlinks**:
+3. **Install dotfile symlinks** (do this before the big package install):
    ```bash
    ./install.sh personal
    ```
 
-4. **Set zsh as default shell** (if not already):
+4. **Install the full package set** (best-effort — re-run if a download fails):
+   ```bash
+   brew bundle          # everything from Brewfile
+   ```
+
+5. **Set zsh as default shell** (if not already):
    ```bash
    chsh -s $(which zsh)
    ```
 
-5. **Initialize tmux plugins** (first time):
+6. **Initialize tmux plugins** (first time):
    Open tmux, then press `prefix + I` to install plugins via TPM.
 </details>
 
