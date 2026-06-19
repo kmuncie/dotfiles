@@ -37,7 +37,27 @@ cd ~/dotfiles
 
 ### Personal Profile (macOS)
 
-The personal profile assumes macOS with Homebrew. On a fresh machine:
+**Fresh Macbook? Use the one-shot bootstrap.** It installs Xcode Command Line
+Tools, Homebrew, every Brewfile package, the dotfile symlinks, and sets zsh as
+the default shell — idempotent, safe to re-run:
+
+```bash
+git clone <repo-url> ~/dotfiles
+cd ~/dotfiles
+./bootstrap.sh personal
+```
+
+Then apply system preferences and finish the account/GUI steps:
+
+```bash
+./macos-defaults.sh   # keyboard, Finder, Dock, screenshots, window behavior
+```
+
+See [`docs/new-device.md`](docs/new-device.md) for the full new-machine
+checklist (GPG/YubiKey, app sign-ins, GUI-only settings).
+
+<details>
+<summary>Manual steps (what bootstrap.sh automates)</summary>
 
 1. **Install Homebrew** (if not already installed):
    ```bash
@@ -63,6 +83,7 @@ The personal profile assumes macOS with Homebrew. On a fresh machine:
 
 5. **Initialize tmux plugins** (first time):
    Open tmux, then press `prefix + I` to install plugins via TPM.
+</details>
 
 ### Key Dependencies (Personal)
 
