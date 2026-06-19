@@ -89,10 +89,25 @@ fi
 # ------------------------------------------------------------------------------
 
 log "Installing packages from Brewfile (this takes a while)..."
-# Don't let one failed formula/cask abort the whole bootstrap — we still want
-# the dotfile symlinks and shell setup below. Failures are reported at the end.
-if ! brew bundle --file="$DOTFILES_DIR/Brewfile"; then
-    warn "Some Brewfile entries failed (see output above)."
+# Homebrew downloads everything up front and skips the entire install phase if
+# any single download fails (e.g. a cask CDN times out), which can leave even
+# core tools uninstalled. Two defenses:
+#   - HOMEBREW_CURL_RETRIES: retry a failing download instead of giving up.
+#   - retry the bundle a few times — downloads are cached, so re-runs are cheap
+#     and a flaky CDN usually succeeds on a later pass.
+# A failure after all retries is non-fatal: we still want the symlinks + shell
+# setup below, and any stragglers can be installed by hand.
+export HOMEBREW_CURL_RETRIES=3
+bundle_ok=0
+for attempt in 1 2 3; do
+    if brew bundle --file="$DOTFILES_DIR/Brewfile"; then
+        bundle_ok=1
+        break
+    fi
+    warn "brew bundle attempt $attempt failed (often a transient download timeout); retrying..."
+done
+if [[ "$bundle_ok" -ne 1 ]]; then
+    warn "Some Brewfile entries still failed after retries (see output above)."
     warn "Continuing with symlinks + shell setup; install the failed items by hand later."
 fi
 
