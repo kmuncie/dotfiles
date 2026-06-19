@@ -111,29 +111,48 @@ cask "calibre"
 cask "claude-code"
 cask "discord"
 cask "docker-desktop"
+cask "figma"
+cask "firefox@developer-edition"
 cask "google-chrome"
+cask "google-chrome@canary"
 cask "grandperspective"
 cask "imageoptim"
 cask "iterm2"
 cask "maccy"
 cask "mactex"
 cask "microsoft-auto-update"
+cask "microsoft-onenote"
 cask "microsoft-teams"
+cask "mullvad-vpn"
 cask "nextcloud"
 cask "obsidian"
 cask "orbstack"
 cask "rectangle"
 cask "runelite"
+cask "shottr"
 cask "slack"
 cask "spotify"
+cask "steam"
+cask "sublime-text"
+cask "tailscale"
 cask "visual-studio-code"
 cask "vlc"
 cask "wezterm"
+cask "whatsapp"
 cask "xld"
+cask "yubico-authenticator"
 cask "zoom"
 
 # ------------------------------------------------------------------------------
 # Mac App Store apps (require `mas` + signed-in App Store)
 # Find IDs with: mas search "App Name"
 # ------------------------------------------------------------------------------
+mas "1Blocker",           id: 1365531024
+mas "FirstSeed Calendar", id: 1348617240
+mas "MacFamilyTree 11",   id: 6480510488
+mas "Things",             id: 904280696
+mas "Transporter",        id: 1450874784
+mas "Weathergraph",       id: 1501958576
+# Xcode: usually installed direct from Apple Developer (or via `xcodes`), not mas.
 # mas "Xcode", id: 497799835
+# JW Library: install from the Mac App Store by hand (not resolvable via mas search).

@@ -73,6 +73,16 @@ These can't be scripted — do them by hand:
   (System Settings → Privacy & Security → Accessibility) and set to launch at login.
 - **iTerm2 / WezTerm** — confirm color scheme and font render correctly.
 
+### Apps not covered by Brewfile / mas
+
+Install these by hand — no working cask or `mas` entry:
+
+- **JW Library** — Mac App Store (doesn't resolve via `mas search`).
+- **Xcode** — Apple Developer download or `xcodes`, not mas (commented in Brewfile).
+- **Exodus**, **TinkerTool** — direct download from the vendor.
+- **Ivanti Secure Access** — work-provided VPN client.
+- **Jagex Launcher**, **OpenTTD** — game launchers, direct download.
+
 ## 7. Verify
 
 - Open a fresh terminal — prompt (oh-my-posh), aliases, and PATH should all work.
