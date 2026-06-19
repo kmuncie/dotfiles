@@ -12,17 +12,28 @@ steps that can't be scripted.
 
 ## 2. Run the bootstrap
 
-Installs Xcode Command Line Tools, Homebrew, all Brewfile packages, dotfile
-symlinks, and sets zsh as the default shell.
+A brand-new Mac has **no git**, so you can't clone this repo yet. You don't need
+to — `curl` (part of base macOS) fetches the bootstrap script directly from
+GitHub, and the script clones the repo itself once it has installed a
+brew-managed git:
 
 ```bash
-git clone <repo-url> ~/dotfiles
-cd ~/dotfiles
-./bootstrap.sh personal
+curl -fsSL https://raw.githubusercontent.com/kmuncie/dotfiles/master/bootstrap.sh -o /tmp/bootstrap.sh
+bash /tmp/bootstrap.sh personal
 ```
 
+This installs Xcode Command Line Tools, Homebrew, a brew-managed git, clones the
+repo to `~/dotfiles`, installs all Brewfile packages and dotfile symlinks, and
+sets zsh as the default shell.
+
 If it stops after installing Command Line Tools, finish the GUI installer and
-re-run the same command — it's idempotent.
+re-run the same two commands — it's idempotent.
+
+> Why not just `git clone` first? A fresh Mac has no git until either Xcode CLT
+> or Homebrew installs one. Rather than lean on Apple's CLT git, the bootstrap
+> installs git via Homebrew and clones with that — see the note in the README.
+
+Once the repo is cloned, the remaining steps run from inside it (`cd ~/dotfiles`).
 
 ## 3. Apply macOS system preferences
 

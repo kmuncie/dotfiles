@@ -37,15 +37,24 @@ cd ~/dotfiles
 
 ### Personal Profile (macOS)
 
-**Fresh Macbook? Use the one-shot bootstrap.** It installs Xcode Command Line
-Tools, Homebrew, every Brewfile package, the dotfile symlinks, and sets zsh as
-the default shell — idempotent, safe to re-run:
+**Fresh Macbook? Use the one-shot bootstrap.** A brand-new Mac has no git, so
+don't clone first — `curl` the bootstrap (curl is part of base macOS). It
+installs Xcode Command Line Tools, Homebrew, a **brew-managed git**, then clones
+this repo *with that git*, installs every Brewfile package and the dotfile
+symlinks, and sets zsh as the default shell — idempotent, safe to re-run:
 
 ```bash
-git clone <repo-url> ~/dotfiles
-cd ~/dotfiles
-./bootstrap.sh personal
+curl -fsSL https://raw.githubusercontent.com/kmuncie/dotfiles/master/bootstrap.sh -o /tmp/bootstrap.sh
+bash /tmp/bootstrap.sh personal
 ```
+
+Already have the repo cloned? Just run `./bootstrap.sh personal` from inside it.
+
+> **On git and the Command Line Tools:** Homebrew requires the Xcode CLT, so
+> they're always installed — but the bootstrap never depends on Apple's git for
+> anything you care about. It `brew install`s git up front and clones with that,
+> and the dotfiles PATH puts `/opt/homebrew/bin` ahead of `/usr/bin`, so every
+> `git` you run is the brew-managed one. CLT git only serves Homebrew's internals.
 
 Then apply system preferences and finish the account/GUI steps:
 
