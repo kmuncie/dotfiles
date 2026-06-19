@@ -17,7 +17,7 @@ local config = wezterm.config_builder()
 -- Pick a colour scheme. WezTerm ships with more than 1,000!
 -- Find them here: https://wezfurlong.org/wezterm/colorschemes/index.html
 -- config.color_scheme = "nord"
-config.colors = require("cyberdream")
+config.colors = require("catppuccin-mocha")
 
 -- Use Metal GPU renderer on macOS for best performance
 config.front_end = "WebGpu"

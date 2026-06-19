@@ -42,7 +42,7 @@
    diffFilter = delta --color-only --features=interactive
 
 [delta]
-   features = woolly-mammoth decorations
+   features = catppuccin-mocha decorations
    navigate = true  # use n and N to move between diff sections
    side-by-side = true
    line-numbers = true

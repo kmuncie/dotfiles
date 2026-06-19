@@ -22,6 +22,7 @@ brew "jandedobbeleer/oh-my-posh/oh-my-posh"  # prompt theme
 # Core CLI replacements (GNU tools + modern alternatives)
 # ------------------------------------------------------------------------------
 brew "coreutils"             # GNU ls/dircolors (.dir-colors)
+brew "vivid"                 # LS_COLORS generator (catppuccin-mocha theme)
 brew "gnu-sed"
 brew "grep"                  # GNU grep
 brew "bat"                   # cat with syntax highlighting
