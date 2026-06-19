@@ -39,9 +39,10 @@ elif [[ -f /usr/local/opt/antidote/share/antidote/antidote.zsh ]]; then
   source /usr/local/opt/antidote/share/antidote/antidote.zsh
 fi
 
-# Load plugins from ~/.zsh_plugins.zsh
-# This file is managed by Antidote
-source ~/.zsh_plugins.zsh
+# Auto-compile .zsh_plugins.txt → .zsh_plugins.zsh when stale, then load
+zsh_plugins=~/.zsh_plugins
+[[ ${zsh_plugins}.zsh -nt ${zsh_plugins}.txt ]] || antidote bundle <${zsh_plugins}.txt >${zsh_plugins}.zsh
+source ${zsh_plugins}.zsh
 
 # ------------------------------------------------------------------------------
 # Plugin Configuration (post-load)

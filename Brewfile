@@ -6,7 +6,6 @@
 # Taps
 # ------------------------------------------------------------------------------
 tap "common-fate/granted"
-tap "homebrew/services"
 tap "jandedobbeleer/oh-my-posh"
 tap "teamookla/speedtest"
 
@@ -17,7 +16,7 @@ brew "antidote"               # zsh plugin manager (.zshrc)
 brew "bash"                   # modern bash (macOS ships 3.2)
 brew "bash-completion"
 brew "stow"                   # symlink manager (install.sh)
-brew "jandedobbeleer/oh-my-posh/oh-my-posh", link: false  # prompt theme
+brew "jandedobbeleer/oh-my-posh/oh-my-posh"  # prompt theme
 
 # ------------------------------------------------------------------------------
 # Core CLI replacements (GNU tools + modern alternatives)
@@ -108,7 +107,7 @@ cask "balenaetcher"
 cask "betterdisplay"
 cask "calibre"
 cask "claude-code"
-cask "discord"
+# cask "discord"
 # cask "docker-desktop"     # replaced by OrbStack (provides docker engine + CLI); re-enable if you leave OrbStack
 cask "figma"
 cask "firefox@developer-edition"
@@ -122,7 +121,7 @@ cask "maccy"
 cask "microsoft-auto-update"
 cask "microsoft-onenote"
 cask "microsoft-teams"
-cask "mullvad-vpn"
+# cask "mullvad-vpn"
 cask "nextcloud"
 cask "obsidian"
 cask "orbstack"
@@ -133,7 +132,7 @@ cask "slack"
 cask "spotify"
 cask "steam"
 cask "sublime-text"
-cask "tailscale"
+cask "tailscale-app"
 cask "visual-studio-code"
 cask "vlc"
 cask "wezterm"

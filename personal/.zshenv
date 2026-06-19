@@ -11,6 +11,6 @@ if [ -f ~/.profile ]; then
     . ~/.profile
 fi
 
-. "$HOME/.cargo/env"
+[ -f "$HOME/.cargo/env" ] && . "$HOME/.cargo/env"
 
 alias assume=". assume"
