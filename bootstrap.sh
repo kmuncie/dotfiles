@@ -89,7 +89,12 @@ fi
 # ------------------------------------------------------------------------------
 
 log "Installing packages from Brewfile (this takes a while)..."
-brew bundle --file="$DOTFILES_DIR/Brewfile"
+# Don't let one failed formula/cask abort the whole bootstrap — we still want
+# the dotfile symlinks and shell setup below. Failures are reported at the end.
+if ! brew bundle --file="$DOTFILES_DIR/Brewfile"; then
+    warn "Some Brewfile entries failed (see output above)."
+    warn "Continuing with symlinks + shell setup; install the failed items by hand later."
+fi
 
 # ------------------------------------------------------------------------------
 # 6. Dotfile symlinks via stow
