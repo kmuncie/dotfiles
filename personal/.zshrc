@@ -183,6 +183,72 @@ if command -v vivid &>/dev/null; then
   export LS_COLORS="$(vivid generate catppuccin-mocha)"
 fi
 
+# Claude Code - per-directory account switching
+# ------------------------------------------------------------------------------
+# Two Claude accounts on one machine: personal, and work (Bethel). Claude Code
+# has no native profile/account flag, but it honours CLAUDE_CONFIG_DIR, which
+# relocates the entire config directory -- credentials, settings, session
+# history, project state. One config dir per account keeps them fully separate.
+#
+#   ~/.claude        personal (the historical default; nothing moved)
+#   ~/.claude-work   work     (see ~/.claude-work/README.md)
+#
+# The rule: anything under ~/Code/BETHEL/ uses the work account, everything
+# else uses personal.
+#
+# IMPORTANT: the personal branch UNSETS CLAUDE_CONFIG_DIR rather than pointing
+# it at ~/.claude. Those are not equivalent. Unset, Claude Code uses its default
+# layout: state in ~/.claude.json (home root) and the Keychain item
+# "Claude Code-credentials". Set -- even to that same ~/.claude path -- it
+# switches to custom-dir layout: state in ~/.claude/.claude.json and a Keychain
+# item suffixed with a hash of the path. Setting it explicitly therefore invents
+# an empty third profile that shares your skills and history but is not logged
+# in. Verified 2026-08-12.
+#
+# Why a wrapper function and not a chpwd hook: CLAUDE_CONFIG_DIR is read once,
+# when the process starts. Re-exporting it as you `cd` would do nothing to an
+# already-running session and would leave you unsure which account a given
+# session actually holds. Resolving at launch time is unambiguous. Setting it as
+# a command prefix (rather than `export`) also scopes it to that one process
+# tree, so subagents and hooks inherit it while the surrounding shell stays
+# clean.
+#
+# To override for a one-off session, any of:
+#   CLAUDE_PROFILE=work claude      # single invocation
+#   claude-work / claude-personal   # aliases for the same thing
+#   export CLAUDE_PROFILE=work      # pin an entire terminal tab
+#
+# Caveat: IDE extensions launch the binary directly and never source this file.
+# They get an unset CLAUDE_CONFIG_DIR, which is exactly the personal account --
+# so they behave correctly, they just cannot reach the work account.
+CLAUDE_CFG_WORK="$HOME/.claude-work"
+
+claude() {
+  local dir="${PWD:A}" use_work=0   # :A resolves symlinks, so a symlinked repo still matches
+
+  case "${CLAUDE_PROFILE:-}" in
+    work)     use_work=1 ;;
+    personal) use_work=0 ;;
+    *)
+      # Trailing slash on both sides so ~/Code/BETHELX can never match.
+      case "$dir/" in
+        "${HOME:A}/Code/BETHEL/"*) use_work=1 ;;
+      esac
+      ;;
+  esac
+
+  if (( use_work )); then
+    CLAUDE_CONFIG_DIR="$CLAUDE_CFG_WORK" command claude "$@"
+  else
+    # `env -u` rather than `command`, so that an inherited or exported
+    # CLAUDE_CONFIG_DIR is actively cleared instead of leaking through.
+    env -u CLAUDE_CONFIG_DIR claude "$@"
+  fi
+}
+
+alias claude-work='CLAUDE_PROFILE=work claude'
+alias claude-personal='CLAUDE_PROFILE=personal claude'
+
 # oh-my-posh (prompt)
 if [ "$TERM_PROGRAM" != "Apple_Terminal" ]; then
   eval "$(oh-my-posh init zsh --config ~/dotfiles/oh-my-posh/catppuccin-mocha.omp.json)"
