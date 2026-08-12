@@ -64,6 +64,9 @@ brew "azure-cli"
 brew "common-fate/granted/granted"  # AWS role assumption (assume function)
 brew "teamookla/speedtest/speedtest"
 brew "iperf3"
+brew "rclone"                # CLI sync/copy to NAS (CopyParty WebDAV); NOTE: Homebrew
+                             # build has no FUSE `mount` — use web UI or `rclone copy`,
+                             # see echocherry-nas-docs/docs/copyparty-fileserver.md
 
 # ------------------------------------------------------------------------------
 # Languages / build toolchains
@@ -71,12 +74,27 @@ brew "iperf3"
 brew "go"
 brew "uv"                    # python package manager (manages its own pythons)
 # brew "python@3.9"          # EOL; uv handles pythons now — re-enable if a tool pins 3.9
-# brew "ruby"                # only needed for cocoapods below
-# brew "cocoapods"           # legacy iOS dep manager, superseded by Swift Package Manager
+# brew "ruby"                # cocoapods pulls its own ruby as a dependency
 # brew "llvm@16"             # old pinned LLVM, likely a stale build dep — re-enable if a build needs it
 brew "cmake"
 # brew "automake"            # autotools build dep, rarely used standalone
 # brew "bison"               # parser generator build dep, rarely used standalone
+brew "shellcheck"            # shell linting (bootstrap.sh, install.sh, setup-ai-tools.sh)
+
+# ------------------------------------------------------------------------------
+# iOS / macOS app toolchain (Tauri mobile)
+# ------------------------------------------------------------------------------
+# Required by Tauri's iOS pipeline, not optional extras: `tauri ios init`
+# generates gen/apple/{project.yml,Podfile} in each project, and cargo-mobile2
+# shells out to xcodegen and pod to turn those into a buildable .xcodeproj.
+# Confirmed present in jw-library, team-times, and tauri-plugin-icloud-kvs.
+# (Was previously commented out as "legacy, superseded by SPM" -- true for
+# hand-written Xcode projects, but Tauri still generates a Podfile regardless.)
+brew "cocoapods"             # gen/apple/Podfile -> `pod install`
+brew "xcodegen"              # gen/apple/project.yml -> .xcodeproj
+# Physical-device deploy only; drop both if you build to the simulator only.
+brew "ios-deploy"            # install/launch on a tethered device
+brew "libimobiledevice"      # device discovery (idevice_id et al.)
 
 # ------------------------------------------------------------------------------
 # Media / documents / fonts
@@ -96,6 +114,13 @@ brew "csvkit"
 # ------------------------------------------------------------------------------
 # brew "neofetch"           # discontinued upstream (2024) — consider `fastfetch`; `neofetch` alias breaks until re-enabled
 brew "mas"                   # Mac App Store CLI (for mas entries below)
+brew "asimov"                # excludes node_modules/target/etc from Time Machine
+
+# ------------------------------------------------------------------------------
+# Local LLM tooling
+# ------------------------------------------------------------------------------
+brew "llama.cpp"             # local GGUF inference (llama-server, llama-cli)
+brew "hf"                    # huggingface.co model downloads
 
 # ------------------------------------------------------------------------------
 # Casks (GUI apps)
@@ -107,6 +132,7 @@ cask "artisan"
 cask "balenaetcher"
 cask "betterdisplay"
 cask "calibre"
+cask "claude"
 cask "claude-code"
 cask "discord"
 # cask "docker-desktop"     # replaced by OrbStack (provides docker engine + CLI); re-enable if you leave OrbStack
@@ -118,6 +144,7 @@ cask "grandperspective"
 cask "imageoptim"
 cask "iterm2"
 cask "maccy"
+cask "macparakeet"           # local speech-to-text / meeting transcription
 # cask "mactex"            # ~5GB TeX distribution — re-enable if you need LaTeX
 cask "microsoft-auto-update"
 cask "microsoft-onenote"
