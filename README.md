@@ -187,8 +187,8 @@ The personal profile uses a layered approach to shell configuration:
     it, so the result is deterministic rather than cumulative.
 
    * **`~/.zshenv`**: Runs for **every** zsh — login, interactive, *and*
-    non-interactive (scripts, cron, and editor-spawned shells like Windsurf's
-    Cascade terminal). Sources `.profile` so PATH exists even when no login or
+    non-interactive (scripts, cron, and the bare shells that editors and AI
+    coding tools spawn). Sources `.profile` so PATH exists even when no login or
     interactive file runs. See "Why PATH is sourced in more than one place" below.
 
    * **`~/.zprofile`**: Zsh login wrapper. Sources `.profile`.
@@ -220,9 +220,9 @@ duplication but each call solves a distinct macOS quirk — removing either one
 reintroduces a real bug:
 
 1. **`.zshenv` → guarantees PATH exists at all.** zsh only reads `.zshenv` for
-   non-login, non-interactive shells. Editors that spawn commands in a bare
-   shell — notably **Windsurf's Cascade terminal**, but also cron and plain
-   scripts — never run `.zprofile` or `.zshrc`. Without sourcing `.profile`
+   non-login, non-interactive shells. Anything that spawns commands in a bare
+   shell — AI coding tools and editor terminals, but also cron and plain
+   scripts — never runs `.zprofile` or `.zshrc`. Without sourcing `.profile`
    here, `/usr/local/bin` is missing and tools installed there (e.g. the
    1Password `op` CLI) silently fail to resolve.
 

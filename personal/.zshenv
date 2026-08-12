@@ -1,8 +1,8 @@
 # ------------------------------------------------------------------------------
 # ZSHENV - Executed for EVERY zsh: login, interactive, AND non-interactive.
 # Sources shared .profile so PATH/env exist even in non-login, non-interactive
-# shells (scripts, cron, and editor-spawned shells like Windsurf's Cascade
-# terminal). See README "Why PATH is sourced in more than one place".
+# shells (scripts, cron, and the bare shells editors and AI coding tools spawn).
+# See README "Why PATH is sourced in more than one place".
 # ------------------------------------------------------------------------------
 
 # Shared PATH and environment setup. Sourced first so the prepends below survive

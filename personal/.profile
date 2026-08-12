@@ -102,9 +102,6 @@ export PATH=$PATH:/usr/local/go/bin:$GOPATH/bin
 
 export PATH=${PATH}:./node_modules/.bin
 
-# Windsurf
-export PATH="$HOME/.codeium/windsurf/bin:$PATH"
-
 # Deno
 export DENO_INSTALL="$HOME/.deno"
 export PATH="$DENO_INSTALL/bin:$PATH"
