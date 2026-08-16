@@ -29,15 +29,59 @@ file must change with it.
 Install `llama.cpp` via `brew bundle` (it is in the Brewfile). Install Pi with
 `npm i -g @mariozechner/pi-coding-agent`.
 
-## Usage
+## Quickstart
+
+Two commands cover everyday use. Both start the server themselves — there is no
+separate "start it first" step.
+
+```bash
+llamactl chat                  # casual chat
+llamactl code ~/some/project   # coding agent, rooted in that directory
+llamactl stop                  # when done — frees the model, resets the ceiling
+```
+
+Both open the same Pi TUI. Leave it with `Ctrl-C` or `/exit`. **Leaving Pi does
+not stop the server** — the model stays resident in memory until you run
+`llamactl stop`. Run `llamactl status` if you are unsure whether something is
+still loaded.
+
+|  | `llamactl chat` | `llamactl code [dir]` |
+|---|---|---|
+| Model | Qwen3.5 9B | Gemma 4 12B |
+| Tools | Off (`--no-tools`) — cannot touch files | Full read/write/edit/bash |
+| For | Questions, drafting, thinking out loud | Actual work on a codebase |
+
+Switching between them restarts the server with the other model; only one runs
+at a time, because two would not fit in memory together.
+
+### There is no web UI
+
+This Homebrew build of `llama-server` does not serve one — the root path returns
+415. The Pi TUI above is the interface. To talk to the server directly, use the
+OpenAI-compatible API:
+
+```bash
+curl -s http://127.0.0.1:8080/v1/chat/completions \
+  -H 'Content-Type: application/json' \
+  -d '{"model":"unsloth/Qwen3.5-9B-GGUF:Q4_K_M",
+       "messages":[{"role":"user","content":"hello"}],
+       "max_tokens":512}' | jq -r '.choices[0].message.content'
+```
+
+Keep `max_tokens` generous — both models emit reasoning tokens first, so a small
+budget returns empty `content`. See Troubleshooting.
+
+## Server management
+
+For when you want the server without a client attached — another editor, a
+script, or the `curl` call above:
 
 ```bash
 llamactl start coding     # or: chat
-llamactl status           # pid, endpoint, wired limit, swap usage
-llamactl logs             # tail the server log
+llamactl status           # pid, profile, endpoint, wired limit, swap usage
+llamactl logs             # follow the server log
 llamactl restart coding
 llamactl stop             # kills the server AND resets the wired limit
-llamactl code ~/some/project   # start the coding profile, cd, launch Pi
 ```
 
 ## One-time setup: the scoped sudoers rule

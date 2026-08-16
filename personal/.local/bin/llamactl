@@ -196,17 +196,28 @@ start() {
     return 1
 }
 
+# The model id for a profile, without the context size.
+profile_model() {
+    local model ctx
+    read -r model ctx <<< "${PROFILES[$1]}"
+    echo "$model"
+}
+
+# Coding: full tool access (read/write/edit/bash), rooted at a directory.
 code() {
     local dir="${1:-.}"
     start coding
-
-    local model ctx
-    read -r model ctx <<< "${PROFILES[coding]}"
-
     cd "$dir"
-    # Pass the model explicitly so the profile above stays the single source of
-    # truth, even if ~/.pi/agent/models.json drifts.
-    pi --provider "$PI_PROVIDER" --model "$model"
+    # Pass the model explicitly so the profile table above stays the single
+    # source of truth, even if ~/.pi/agent/models.json drifts. Without
+    # --provider, Pi defaults to its cloud provider rather than this server.
+    pi --provider "$PI_PROVIDER" --model "$(profile_model coding)"
+}
+
+# Casual chat: same TUI, smaller model, tools off so it cannot touch files.
+chat() {
+    start chat
+    pi --provider "$PI_PROVIDER" --model "$(profile_model chat)" --no-tools
 }
 
 # ------------------------------------------------------------------------------
@@ -219,6 +230,27 @@ case "${1:-}" in
     status)  status ;;
     restart) stop_server; start "${2:-coding}" ;;
     code)    code "${2:-.}" ;;
+    chat)    chat ;;
     logs)    tail -f "$LOGFILE" ;;
-    *)       echo "Usage: llamactl {start [chat|coding]|stop|restart [chat|coding]|status|logs|code [dir]}" ;;
+    *)
+        cat <<EOF
+llamactl — local llama.cpp server + Pi
+
+Everyday use:
+  llamactl chat            Casual chat (9B model, tools off)
+  llamactl code [dir]      Coding agent in [dir] (12B model, full tools)
+  llamactl stop            Shut down and release memory
+
+Both commands start the server themselves. Run stop when you are done —
+it frees the model and resets the Metal wired-memory ceiling.
+
+Server management:
+  llamactl start [chat|coding]     Start the server only, no client
+  llamactl restart [chat|coding]
+  llamactl status                  Running? which profile? memory pressure?
+  llamactl logs                    Follow the server log
+
+Docs: ~/dotfiles/docs/local-llm.md
+EOF
+        ;;
 esac
