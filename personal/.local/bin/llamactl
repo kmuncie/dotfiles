@@ -49,8 +49,10 @@ PROFILES=(
     coding  "bartowski/gemma-4-12B-it-GGUF:Q4_K_M 16384"
 )
 
-# Provider name as configured in ~/.pi/agent/models.json. That file points Pi at
-# http://localhost:8080/v1 and is NOT managed by this repo.
+# Provider name as configured in personal/.pi/agent/models.json, stowed to
+# ~/.pi/agent/models.json. That file hardcodes the port in its baseUrl and JSON
+# cannot carry a comment, so if LLAMA_PORT above ever changes, change it there
+# too or Pi will keep dialing the old port.
 PI_PROVIDER="llama-cpp"
 
 # ------------------------------------------------------------------------------

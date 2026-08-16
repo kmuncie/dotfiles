@@ -15,7 +15,16 @@ the working command line.
 |------|---------|
 | `personal/.local/bin/llamactl` | Start/stop/status the local server, launch Pi against it. Stowed to `~/.local/bin`, already on `PATH` via `personal/.profile`. |
 | `scripts/llamactl-wired-limit.sudoers` | Scoped sudoers drop-in permitting exactly one privileged command. Not stowed — installed once, by hand, into `/etc/sudoers.d/`. |
-| `~/.pi/agent/models.json` | Points Pi at `http://localhost:8080/v1` as provider `llama-cpp`. **Not managed by this repo.** |
+| `personal/.pi/agent/models.json` | Points Pi at `http://localhost:8080/v1` as provider `llama-cpp`, and lists the models from both profiles. Stowed to `~/.pi/agent/models.json`. |
+
+Only `models.json` is tracked from `~/.pi/agent/`. Its siblings are ignored on
+purpose: `auth.json` holds provider credentials, `models-store.json` and
+`settings.json` are machine state, and this repo is public. See the `.gitignore`
+block that denies `personal/.pi/agent/*` and re-allows the single file.
+
+Note the coupling: `models.json` hardcodes port 8080 in its `baseUrl`, and JSON
+cannot carry a comment saying so. If `LLAMA_PORT` in `llamactl` changes, that
+file must change with it.
 
 Install `llama.cpp` via `brew bundle` (it is in the Brewfile). Install Pi with
 `npm i -g @mariozechner/pi-coding-agent`.
@@ -208,7 +217,7 @@ not installed.
 | `start` fails with a sudo error | The sudoers drop-in is not installed, or the `sysctl` path drifted. Re-run `which sysctl` and compare to the rule. |
 | Server never comes up | `llamactl logs`. First run of a profile downloads several GB; the health check waits 120s. |
 | Loads, then everything crawls | `llamactl status` — if `vm.swapusage` is climbing, the model is too big. Use a smaller one; the wired limit will not rescue it. |
-| Pi cannot reach the model | Confirm `~/.pi/agent/models.json` has the `llama-cpp` provider at `http://localhost:8080/v1`, and that its model id matches the profile in `llamactl`. |
+| Pi cannot reach the model | Confirm `~/.pi/agent/models.json` still symlinks into the repo, that it has the `llama-cpp` provider at `http://localhost:8080/v1`, and that its model ids match the profiles in `llamactl`. `pi --list-models \| grep llama-cpp` is the quick check. |
 | Wired limit still raised with nothing running | `llamactl stop` resets it to `0`. Confirm with `sysctl iogpu.wired_limit_mb`. |
 | Empty `content` in an API response | The coding profile is a reasoning model: it fills `reasoning_content` first, and a low `max_tokens` hits `finish_reason: "length"` before any final content is emitted. Raise `max_tokens`. Not a server fault. |
 

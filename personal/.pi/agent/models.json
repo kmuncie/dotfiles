@@ -1,0 +1,17 @@
+{
+   "providers": {
+      "llama-cpp": {
+         "baseUrl": "http://localhost:8080/v1",
+         "api": "openai-completions",
+         "apiKey": "none",
+         "models": [
+            {
+               "id": "bartowski/gemma-4-12B-it-GGUF:Q4_K_M"
+            },
+            {
+               "id": "unsloth/Qwen3.5-9B-GGUF:Q4_K_M"
+            }
+         ]
+      }
+   }
+}

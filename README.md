@@ -15,7 +15,17 @@ Two profiles are available, each built on a shared `common` package:
 |---------|-------|
 | `common` | `.aliases`, `.gitconfig`, `.dir-colors`, `.vimrc`, `.vim/` |
 | `server` | `.bashrc`, `.bash_profile`, `.tmux.conf` |
-| `personal` | `.bashrc`, `.bash_profile`, `.zshrc`, `.zprofile`, `.zsh_plugins.txt`, `.tmux.conf`, `.tmux/`, `.config/nvim/`, `.wezterm.lua`, `.local/bin/` |
+| `personal` | `.bashrc`, `.bash_profile`, `.zshrc`, `.zprofile`, `.zsh_plugins.txt`, `.tmux.conf`, `.tmux/`, `.config/nvim/`, `.wezterm.lua`, `.local/bin/`, `.ssh/config.d/`, `.pi/agent/models.json` |
+
+### Deliberately Unmanaged
+
+Some config is intentionally left out of this repo because **this repo is
+public**:
+
+| Path | Why |
+|------|-----|
+| `~/.ssh/config` | Contains internal hostnames, bastions, jump hosts, and usernames. Only the public-safe `Host *` defaults are tracked, as `personal/.ssh/config.d/10-defaults.conf`, pulled in by an `Include` near the bottom of the real file. That placement is load-bearing — see the comments in both files. |
+| `~/.pi/agent/auth.json` and siblings | Provider credentials and machine state. Only `models.json` is tracked. |
 
 ## Setup
 
