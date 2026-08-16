@@ -1,0 +1,30 @@
+# Scoped passwordless sudo for llamactl's Metal wired-memory ceiling.
+#
+# This grants exactly one command with no password: setting the
+# iogpu.wired_limit_mb sysctl. It is deliberately NOT general passwordless sudo.
+# The wildcard covers only the value, so `sysctl iogpu.wired_limit_mb=21000` and
+# `sysctl iogpu.wired_limit_mb=0` match and nothing else does.
+#
+# The binary path must match how llamactl invokes it. Confirmed with
+# `which sysctl` on this machine (macOS 27.0): /usr/sbin/sysctl. If that ever
+# moves, this rule silently stops matching and sudo falls back to prompting.
+#
+# Install (never hand-edit files under /etc/sudoers.d; always validate first):
+#
+#     sudo visudo -c -f scripts/llamactl-wired-limit.sudoers
+#     sudo install -m 0440 -o root -g wheel \
+#         scripts/llamactl-wired-limit.sudoers \
+#         /etc/sudoers.d/llamactl-wired-limit
+#     sudo visudo -c
+#
+# Alternatively, create it interactively and paste the rule below:
+#
+#     sudo visudo -f /etc/sudoers.d/llamactl-wired-limit
+#
+# Verify the resulting scope as your own user:
+#
+#     sudo -l
+#
+# Expected output includes exactly this one NOPASSWD entry and nothing broader.
+
+kmuncie ALL=(root) NOPASSWD: /usr/sbin/sysctl iogpu.wired_limit_mb=*

@@ -1,0 +1,222 @@
+#!/usr/bin/env zsh
+# llamactl — manage the local llama.cpp server and the Pi coding agent.
+#
+# Why this exists: running local models on a 24GB Apple Silicon machine needs a
+# few non-obvious flags every single time (--parallel 1, an explicit context
+# size, a raised Metal wired-memory ceiling). Getting any of them wrong is an
+# OOM crash or a swap-thrash, so they live here instead of in shell history.
+#
+# See docs/local-llm.md in the dotfiles repo for the reasoning behind every
+# constant in this file, especially WIRED_LIMIT_MB and its tradeoffs.
+
+set -euo pipefail
+
+# ------------------------------------------------------------------------------
+# Configuration
+# ------------------------------------------------------------------------------
+
+# Bind to loopback only. A corporate VPN is active on this machine at times, and
+# llama-server ships with CORS wide open and no API key. Do not change this to
+# 0.0.0.0 without adding --api-key and thinking about who can reach the port.
+LLAMA_HOST="127.0.0.1"
+LLAMA_PORT="8080"
+
+# Metal wired-memory ceiling, in MB, applied only while a model is loaded.
+# 21000 of 24576 total, validated on this specific machine. This is an
+# undocumented Apple sysctl — read the "Downsides" section of docs/local-llm.md
+# before raising it. The headroom below 24576 is deliberate.
+WIRED_LIMIT_MB="21000"
+
+# Full path, and it must stay in sync with the sudoers rule in
+# scripts/llamactl-wired-limit.sudoers. A mismatched path makes the rule fail to
+# match and sudo falls back to prompting for a password.
+SYSCTL_BIN="/usr/sbin/sysctl"
+WIRED_LIMIT_KEY="iogpu.wired_limit_mb"
+
+PIDFILE="$HOME/.cache/llama-server/llama-server.pid"
+PROFILEFILE="$HOME/.cache/llama-server/llama-server.profile"
+LOGFILE="$HOME/.cache/llama-server/llama-server.log"
+mkdir -p "$(dirname "$PIDFILE")"
+
+# profile name -> "<hf-repo>:<quant> <context-size>"
+#
+# Keep these at or below the ~12-14B dense class (~7-9GB of Q4_K_M weights).
+# Dense 27-30B models are marketed as fitting a 24GB machine and do not; they
+# OOM or swap-thrash here regardless of the wired limit. See docs/local-llm.md.
+typeset -A PROFILES
+PROFILES=(
+    chat    "unsloth/Qwen3.5-9B-GGUF:Q4_K_M 16384"
+    coding  "bartowski/gemma-4-12B-it-GGUF:Q4_K_M 16384"
+)
+
+# Provider name as configured in ~/.pi/agent/models.json. That file points Pi at
+# http://localhost:8080/v1 and is NOT managed by this repo.
+PI_PROVIDER="llama-cpp"
+
+# ------------------------------------------------------------------------------
+# Wired-limit helpers
+# ------------------------------------------------------------------------------
+
+# Raising the Metal wired-memory ceiling needs root. Rather than general
+# passwordless sudo, a sudoers drop-in permits exactly this one command. If that
+# drop-in is missing, `sudo -n` fails immediately instead of hanging on a prompt.
+set_wired_limit() {
+    local value="$1"
+
+    if [[ "${LLAMACTL_SKIP_WIRED_LIMIT:-0}" == "1" ]]; then
+        echo "LLAMACTL_SKIP_WIRED_LIMIT=1 — leaving $WIRED_LIMIT_KEY alone."
+        return 0
+    fi
+
+    if sudo -n "$SYSCTL_BIN" "$WIRED_LIMIT_KEY=$value" > /dev/null 2>&1; then
+        return 0
+    fi
+
+    cat >&2 <<EOF
+Error: cannot set $WIRED_LIMIT_KEY=$value without a password prompt.
+
+Install the scoped sudoers rule (one time), from the dotfiles repo:
+
+    sudo visudo -c -f scripts/llamactl-wired-limit.sudoers && \\
+    sudo install -m 0440 -o root -g wheel \\
+        scripts/llamactl-wired-limit.sudoers \\
+        /etc/sudoers.d/llamactl-wired-limit && \\
+    sudo visudo -c
+
+Then confirm the scope with: sudo -l
+
+To run anyway without touching the wired limit (smaller models only):
+
+    LLAMACTL_SKIP_WIRED_LIMIT=1 llamactl start <profile>
+EOF
+    return 1
+}
+
+# ------------------------------------------------------------------------------
+# Server lifecycle
+# ------------------------------------------------------------------------------
+
+server_pid() {
+    [[ -f "$PIDFILE" ]] || return 1
+    local pid
+    pid=$(cat "$PIDFILE")
+    kill -0 "$pid" 2> /dev/null || return 1
+    echo "$pid"
+}
+
+# Kill the server without touching the wired limit. `start` uses this so it does
+# not reset the ceiling to 0 microseconds before raising it again.
+stop_server() {
+    local pid
+    if pid=$(server_pid); then
+        echo "Stopping llama-server (pid $pid)..."
+        kill "$pid"
+        sleep 1
+    fi
+    rm -f "$PIDFILE" "$PROFILEFILE"
+    pkill -f "llama-server" 2> /dev/null || true
+}
+
+status() {
+    local pid
+    if pid=$(server_pid); then
+        echo "llama-server running (pid $pid, profile ${$(cat "$PROFILEFILE" 2> /dev/null):-unknown})"
+        echo "  endpoint: http://$LLAMA_HOST:$LLAMA_PORT/v1"
+    else
+        echo "llama-server not running"
+    fi
+    echo "---"
+    # Watch this after loading a model and running a real prompt. If swapusage
+    # climbs, the model is too big for this machine — the wired limit will not
+    # save it, it only converts the hard crash into slow thrashing.
+    "$SYSCTL_BIN" "$WIRED_LIMIT_KEY"
+    "$SYSCTL_BIN" vm.swapusage
+}
+
+stop() {
+    stop_server
+    # Back to the default heuristic so the wider ceiling exists only while a
+    # model is actually loaded.
+    set_wired_limit 0
+}
+
+start() {
+    local profile="${1:-coding}"
+
+    if [[ -z "${PROFILES[$profile]:-}" ]]; then
+        echo "Unknown profile '$profile'. Options: ${(k)PROFILES}" >&2
+        return 1
+    fi
+
+    stop_server
+    set_wired_limit "$WIRED_LIMIT_MB"
+
+    local model ctx
+    read -r model ctx <<< "${PROFILES[$profile]}"
+
+    echo "Starting $model (ctx=$ctx, wired limit ${WIRED_LIMIT_MB}MB)..."
+
+    # --parallel 1 is load-bearing: llama-server defaults to 4 slots and each
+    # slot gets its own copy of the -c context window, so the default silently
+    # demands 4x the KV cache memory you asked for. That is a real OOM.
+    nohup llama-server -hf "$model" \
+        --host "$LLAMA_HOST" --port "$LLAMA_PORT" \
+        --parallel 1 -ngl 99 -c "$ctx" \
+        --jinja -fa on --cache-reuse 256 \
+        --cache-type-k q8_0 --cache-type-v q8_0 \
+        > "$LOGFILE" 2>&1 &
+
+    echo $! > "$PIDFILE"
+    echo "$profile" > "$PROFILEFILE"
+
+    # The first run of a profile downloads several GB, so the ceiling here is
+    # generous. It is safe to wait this long because the loop bails out the
+    # moment the server process dies — a real failure exits in seconds, not in
+    # an hour.
+    local timeout=3600 i
+    for i in {1..$timeout}; do
+        if curl -s "http://$LLAMA_HOST:$LLAMA_PORT/v1/models" > /dev/null 2>&1; then
+            echo "Server is up on http://$LLAMA_HOST:$LLAMA_PORT/v1"
+            return 0
+        fi
+        if ! server_pid > /dev/null; then
+            echo "llama-server exited during startup — check $LOGFILE" >&2
+            return 1
+        fi
+        # Heartbeat, so a multi-GB first download does not look like a hang.
+        if (( i % 30 == 0 )); then
+            echo "  ...still starting (${i}s). First run downloads the model; llamactl logs to follow."
+        fi
+        sleep 1
+    done
+
+    echo "Didn't come up in ${timeout}s — check $LOGFILE" >&2
+    return 1
+}
+
+code() {
+    local dir="${1:-.}"
+    start coding
+
+    local model ctx
+    read -r model ctx <<< "${PROFILES[coding]}"
+
+    cd "$dir"
+    # Pass the model explicitly so the profile above stays the single source of
+    # truth, even if ~/.pi/agent/models.json drifts.
+    pi --provider "$PI_PROVIDER" --model "$model"
+}
+
+# ------------------------------------------------------------------------------
+# Dispatch
+# ------------------------------------------------------------------------------
+
+case "${1:-}" in
+    start)   start "${2:-coding}" ;;
+    stop)    stop ;;
+    status)  status ;;
+    restart) stop_server; start "${2:-coding}" ;;
+    code)    code "${2:-.}" ;;
+    logs)    tail -f "$LOGFILE" ;;
+    *)       echo "Usage: llamactl {start [chat|coding]|stop|restart [chat|coding]|status|logs|code [dir]}" ;;
+esac

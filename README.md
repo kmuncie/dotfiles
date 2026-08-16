@@ -15,7 +15,7 @@ Two profiles are available, each built on a shared `common` package:
 |---------|-------|
 | `common` | `.aliases`, `.gitconfig`, `.dir-colors`, `.vimrc`, `.vim/` |
 | `server` | `.bashrc`, `.bash_profile`, `.tmux.conf` |
-| `personal` | `.bashrc`, `.bash_profile`, `.zshrc`, `.zprofile`, `.zsh_plugins.txt`, `.tmux.conf`, `.tmux/`, `.config/nvim/`, `.wezterm.lua` |
+| `personal` | `.bashrc`, `.bash_profile`, `.zshrc`, `.zprofile`, `.zsh_plugins.txt`, `.tmux.conf`, `.tmux/`, `.config/nvim/`, `.wezterm.lua`, `.local/bin/` |
 
 ## Setup
 
@@ -122,6 +122,7 @@ These are installed via `brew bundle` from the Brewfile:
 | `grep` | GNU grep |
 | `gnupg` + `pinentry-mac` | GPG commit signing (YubiKey) |
 | `granted` | AWS role assumption (`assume` function) |
+| `llama.cpp` | Local GGUF inference, driven by `llamactl` (see [`docs/local-llm.md`](docs/local-llm.md)) |
 
 ### Migrating from the old makesymlinks.sh
 
@@ -159,7 +160,7 @@ These files live at the repo root and are referenced by path rather than symlink
 | File | Purpose |
 |------|---------|
 | `oh-my-posh/` | Prompt themes (referenced by `.zshrc`) |
-| `scripts/` | Utility scripts |
+| `scripts/` | Utility scripts, plus `llamactl-wired-limit.sudoers` (installed by hand into `/etc/sudoers.d/`) |
 | `Brewfile` | Homebrew dependencies (`brew bundle`) |
 | `themes.gitconfig` | Git delta themes (included by `.gitconfig`) |
 | `neofetch.conf` | Neofetch config (referenced by alias) |
