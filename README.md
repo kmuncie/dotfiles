@@ -224,6 +224,40 @@ incorrectly with every new terminal window.
 [ -d "/path/to/my-new-tool/bin" ] && export PATH="/path/to/my-new-tool/bin:$PATH"
 ```
 
+#### Known limitation: nvm binaries are invisible to scripts
+
+`nvm` is initialized in `.zshrc`, which runs for **interactive shells only**.
+Scripts get `.zshenv` → `.profile`, which hard-resets `PATH` and rebuilds it
+without nvm's node bin. The parent shell's `PATH` does not survive into a child
+script, so anything installed with `npm install -g` is not found there — even
+though it works fine when typed in a terminal.
+
+This bites twice: first as `command not found: <tool>`, then, once the binary is
+located, as `env: node: No such file or directory`, because npm shims start with
+`#!/usr/bin/env node` and need `node` on `PATH` too.
+
+`llamactl` works around it locally by resolving the binary itself and prepending
+its directory (see `find_pi` in `personal/.local/bin/llamactl`). That fix is
+per-script and does not help anything else.
+
+**Possible future change, deliberately not made yet:** add nvm's default-alias
+bin directory to `.profile`, which would fix this for every script at once:
+
+```shell
+# Reads the version nvm's `default` alias points at, e.g. "24.18.0", and puts
+# that bin on PATH for non-interactive shells too. Verified to resolve both
+# `node` and `pi` in a clean non-interactive zsh; not adopted into .profile.
+NVM_DEFAULT="$(cat "$HOME/.nvm/alias/default" 2>/dev/null)"
+[ -n "$NVM_DEFAULT" ] && [ -d "$HOME/.nvm/versions/node/v$NVM_DEFAULT/bin" ] \
+    && export PATH="$HOME/.nvm/versions/node/v$NVM_DEFAULT/bin:$PATH"
+```
+
+Weigh before adopting: it pins scripts to the *default* Node version rather than
+whichever version `nvm use` selected, so a script and an interactive shell could
+run different Node versions and disagree. It also makes `.profile` depend on
+nvm's internal `alias/default` file layout. That is why this is a note rather
+than a change — it alters shared `PATH` behavior for every shell and script.
+
 ### Why PATH is sourced in more than one place
 
 `.profile` is sourced from both `.zshenv` and `.zprofile`. This looks like
