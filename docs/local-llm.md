@@ -45,6 +45,14 @@ not stop the server** — the model stays resident in memory until you run
 `llamactl stop`. Run `llamactl status` if you are unsure whether something is
 still loaded.
 
+Extra arguments pass straight through to Pi, which is handy for one-shot
+questions without entering the TUI:
+
+```bash
+llamactl chat -p "what does ulimit -n do?"
+llamactl code . -p "summarize this repo" --no-session
+```
+
 |  | `llamactl chat` | `llamactl code [dir]` |
 |---|---|---|
 | Model | Qwen3.5 9B | Gemma 4 12B |
@@ -263,6 +271,7 @@ not installed.
 | Loads, then everything crawls | `llamactl status` — if `vm.swapusage` is climbing, the model is too big. Use a smaller one; the wired limit will not rescue it. |
 | Pi cannot reach the model | Confirm `~/.pi/agent/models.json` still symlinks into the repo, that it has the `llama-cpp` provider at `http://localhost:8080/v1`, and that its model ids match the profiles in `llamactl`. `pi --list-models \| grep llama-cpp` is the quick check. |
 | Wired limit still raised with nothing running | `llamactl stop` resets it to `0`. Confirm with `sysctl iogpu.wired_limit_mb`. |
+| `command not found: pi` or `env: node: No such file or directory` | Pi is installed under nvm, which is initialized in `.zshrc` — interactive shells only. `llamactl` is non-interactive, so `.zshenv` → `.profile` rebuilds `PATH` without nvm's node bin. `llamactl` resolves the binary itself and prepends its directory so the `#!/usr/bin/env node` shebang also resolves. If it still fails, Pi is installed under a different Node version than the nvm default: `npm install -g @mariozechner/pi-coding-agent`. |
 | Empty `content` in an API response | The coding profile is a reasoning model: it fills `reasoning_content` first, and a low `max_tokens` hits `finish_reason: "length"` before any final content is emitted. Raise `max_tokens`. Not a server fault. |
 
 Two things llama.cpp reports at startup that are worth knowing about:

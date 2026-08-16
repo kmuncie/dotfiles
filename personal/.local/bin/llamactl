@@ -196,6 +196,65 @@ start() {
     return 1
 }
 
+# Locate the Pi binary and put its directory on PATH.
+#
+# A bare `pi` does not work here even though it works in your terminal. Pi is
+# installed via npm under nvm, and nvm is initialized in .zshrc — which only
+# runs for INTERACTIVE shells. This script is non-interactive, so it gets
+# .zshenv, which sources .profile, which hard-resets PATH and rebuilds it
+# without nvm's node bin. So we resolve the path ourselves.
+#
+# Finding the binary is necessary but not sufficient: Pi's shebang is
+# `#!/usr/bin/env node`, so `node` must be resolvable too. It lives in the same
+# bin directory, which the callers prepend to PATH before exec'ing.
+find_pi() {
+    local candidate
+
+    # If PATH happens to have it (e.g. `source`d into an interactive shell).
+    if candidate=$(command -v pi 2> /dev/null); then
+        echo "$candidate"
+        return 0
+    fi
+
+    local nvm_dir="${NVM_DIR:-$HOME/.nvm}" version
+
+    # nvm's default alias, which may or may not carry a leading "v".
+    if [[ -r "$nvm_dir/alias/default" ]]; then
+        version=$(< "$nvm_dir/alias/default")
+        for candidate in \
+            "$nvm_dir/versions/node/$version/bin/pi" \
+            "$nvm_dir/versions/node/v$version/bin/pi"; do
+            if [[ -x "$candidate" ]]; then
+                echo "$candidate"
+                return 0
+            fi
+        done
+    fi
+
+    # Any other installed node version, newest name first.
+    for candidate in "$nvm_dir"/versions/node/*/bin/pi(NOn); do
+        if [[ -x "$candidate" ]]; then
+            echo "$candidate"
+            return 0
+        fi
+    done
+
+    cat >&2 <<EOF
+Error: cannot find the 'pi' executable.
+
+Looked on PATH and under $nvm_dir/versions/node/*/bin/pi.
+
+Pi is installed per Node version, so switching the nvm default hides it. Install
+it for the current version with:
+
+    npm install -g @mariozechner/pi-coding-agent
+
+The server is still running — 'llamactl status' to check, 'llamactl stop' to
+shut it down.
+EOF
+    return 1
+}
+
 # The model id for a profile, without the context size.
 profile_model() {
     local model ctx
@@ -204,20 +263,33 @@ profile_model() {
 }
 
 # Coding: full tool access (read/write/edit/bash), rooted at a directory.
+# Any arguments after the directory are passed straight through to Pi, e.g.
+#   llamactl code . -p "explain this repo"
 code() {
-    local dir="${1:-.}"
+    local dir="${1:-.}" pi_bin
+    shift 2> /dev/null || true
+    # Resolve Pi before starting the server, so a missing binary fails fast
+    # instead of after a model load.
+    pi_bin=$(find_pi) || return 1
+    # Pi's shebang needs `node`, which sits in the same directory.
+    export PATH="${pi_bin:h}:$PATH"
     start coding
     cd "$dir"
     # Pass the model explicitly so the profile table above stays the single
     # source of truth, even if ~/.pi/agent/models.json drifts. Without
     # --provider, Pi defaults to its cloud provider rather than this server.
-    pi --provider "$PI_PROVIDER" --model "$(profile_model coding)"
+    "$pi_bin" --provider "$PI_PROVIDER" --model "$(profile_model coding)" "$@"
 }
 
 # Casual chat: same TUI, smaller model, tools off so it cannot touch files.
+# Arguments are passed through to Pi, e.g. llamactl chat -p "quick question"
 chat() {
+    local pi_bin
+    pi_bin=$(find_pi) || return 1
+    # Pi's shebang needs `node`, which sits in the same directory.
+    export PATH="${pi_bin:h}:$PATH"
     start chat
-    pi --provider "$PI_PROVIDER" --model "$(profile_model chat)" --no-tools
+    "$pi_bin" --provider "$PI_PROVIDER" --model "$(profile_model chat)" --no-tools "$@"
 }
 
 # ------------------------------------------------------------------------------
@@ -229,8 +301,8 @@ case "${1:-}" in
     stop)    stop ;;
     status)  status ;;
     restart) stop_server; start "${2:-coding}" ;;
-    code)    code "${2:-.}" ;;
-    chat)    chat ;;
+    code)    code "${2:-.}" "${@:3}" ;;
+    chat)    chat "${@:2}" ;;
     logs)    tail -f "$LOGFILE" ;;
     *)
         cat <<EOF
