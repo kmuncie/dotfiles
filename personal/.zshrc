@@ -254,22 +254,12 @@ if [ "$TERM_PROGRAM" != "Apple_Terminal" ]; then
   eval "$(oh-my-posh init zsh --config ~/dotfiles/oh-my-posh/catppuccin-mocha.omp.json)"
 fi
 
-# Kiro terminal integration
-[[ "$TERM_PROGRAM" == "kiro" ]] && . "$(kiro --locate-shell-integration-path zsh)"
-
-# WezTerm shell integration - report current directory via OSC 7
-# This enables tab titles to show the current working directory
-if [[ "$TERM_PROGRAM" == "WezTerm" ]]; then
-   _osc7_cwd() {
-      printf '\e]7;file://%s%s\e\\' "$HOST" "$PWD"
-   }
-   autoload -Uz add-zsh-hook
-   add-zsh-hook chpwd _osc7_cwd
-   _osc7_cwd
-fi
-
 # Rust/Cargo
 [ -f "$HOME/.cargo/env" ] && . "$HOME/.cargo/env"
 
+# Use the 1Password agent for SSH
+export SSH_AUTH_SOCK=~/Library/Group\ Containers/2BUA8C4S2C.com.1password/t/agent.sock
+
 # Profiling - uncomment to use
 # zmodload zsh/zprof
+
