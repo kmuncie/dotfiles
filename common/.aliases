@@ -1,7 +1,19 @@
 # Verbosity and settings that you pretty much just always are going to want.
-alias cp="cp -iv"
-alias mv="mv -iv"
-alias rm="rm -vI"
+alias cp="cp -v"
+alias mv="mv -v"
+alias rm="rm -v"
+
+# Clobber guards, interactive shells only. Coding agents source this file in a
+# non-interactive shell with no tty, where a prompt can't be answered: the
+# command silently no-ops (exit 1, nothing copied) or hangs.
+case $- in
+   *i*)
+      alias cp="cp -iv"
+      alias mv="mv -iv"
+      alias rm="rm -vI"
+      ;;
+esac
+
 alias bc="bc -ql"
 alias rsync="rsync -vrPlu"
 alias mkd="mkdir -pv"
