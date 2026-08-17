@@ -21,3 +21,6 @@ test -e ~/.dir-colors && eval "$(dircolors -b ~/.dir-colors)"
 if [ -f ~/dotfiles/.git-autocomplete.sh ]; then
    . ~/dotfiles/.git-autocomplete.sh
 fi
+
+# Rust/Cargo
+[ -f "$HOME/.cargo/env" ] && . "$HOME/.cargo/env"
