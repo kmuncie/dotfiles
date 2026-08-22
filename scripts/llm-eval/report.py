@@ -20,11 +20,36 @@ Runnable standalone against any past run:
 
 import html
 import json
+import subprocess
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
 RESULT_DIR = Path.home() / ".cache" / "llm-eval"
+
+
+def effective_wired_ceiling_mb():
+    """The wired-memory ceiling actually in force, in MB.
+
+    `iogpu.wired_limit_mb` of 0 does not mean "no limit" — it means macOS falls back
+    to an internal heuristic of roughly 75% of physical RAM. Since llamactl stopped
+    raising the sysctl, that heuristic is the real ceiling, and a headroom figure
+    measured against the old hardcoded 21000 would be reporting against a limit that
+    is no longer set.
+
+    The 75% figure is community-derived, not an Apple contract. Treat headroom based
+    on it as indicative rather than exact.
+    """
+    try:
+        raised = int(subprocess.run(["/usr/sbin/sysctl", "-n", "iogpu.wired_limit_mb"],
+                                    capture_output=True, text=True).stdout.strip())
+        if raised > 0:
+            return raised
+        total = int(subprocess.run(["/usr/sbin/sysctl", "-n", "hw.memsize"],
+                                   capture_output=True, text=True).stdout.strip())
+        return int(total * 0.75 / 1e6)
+    except Exception:
+        return 0
 
 CSS = """
 :root {
@@ -131,29 +156,86 @@ def _started(results):
     return [r for r in results if r.get("started")]
 
 
-def _fit_verdict(r):
-    p, m = r.get("peak") or {}, r.get("memory") or {}
-    swap = p.get("peak_swap_mb") or 0
-    if not m.get("long_prompt_ok"):
+# Wired headroom below this is "running at the ceiling" regardless of swap.
+HEADROOM_TIGHT_MB = 1500
+
+# Swap *rise* thresholds, in MB. See fit_verdict for why rise and not absolute.
+SWAP_RISE_FAIL_MB = 1500
+SWAP_RISE_WARN_MB = 500
+
+
+def swap_rise_mb(r):
+    """Swap attributable to this profile: peak minus its own starting baseline.
+
+    Getting this metric right took three attempts, and the wrong versions each
+    produced a confident, wrong verdict:
+
+      1. Delta from baseline, point-sampled. Wrong because the sampling was wrong,
+         not the metric — three samples all landed in quiet moments and missed the
+         rise completely. A 27B that drove the machine to 5-7GB of swap was recorded
+         at under 600MB and reported as "fits".
+      2. Peak absolute. Adopted to compensate for (1), and wrong in the other
+         direction: it charges a profile for swap that was already resting on the
+         machine before it started. With ~900MB of pre-existing swap, every healthy
+         profile got flagged "marginal" while nothing had actually moved.
+      3. Peak minus own baseline, continuously sampled. What is used now. Continuous
+         sampling fixes the blindness in (1), which is what made delta unusable, and
+         subtracting the profile's own baseline fixes the false alarms in (2).
+
+    macOS does not reclaim swap eagerly, so a profile can inherit a high baseline
+    from one that ran before it. That inherited swap is stale pages from a dead
+    process and is not this model's doing. Charging it to this model is what
+    produced the false alarms; the baseline warning in the report covers the case
+    where it genuinely muddies a comparison.
+
+    Clamped at zero because swap can fall during a run when the kernel reclaims.
+    """
+    peak = (r.get("peak") or {}).get("peak_swap_mb")
+    base = (r.get("baseline") or {}).get("swap_used_mb")
+    if peak is None or base is None:
+        return None
+    return max(0.0, peak - base)
+
+
+def fit_verdict(r, wired_limit_mb=0):
+    """(text, kind) for a profile's memory verdict. Single source of truth —
+    both summary.md and report.html call this so they cannot disagree."""
+    if not r.get("started"):
+        return "failed to start", "fail"
+    if not (r.get("memory") or {}).get("long_prompt_ok"):
         return "does not fit (prompt failed)", "fail"
-    if swap > 3000:
-        return "does not fit (heavy swap)", "fail"
-    if swap > 1500:
-        return "marginal", "warn"
-    if swap > 800:
-        return "marginal", "warn"
+
+    rise = swap_rise_mb(r)
+    peak_wired = (r.get("peak") or {}).get("peak_wired_mb") or 0
+    headroom = wired_limit_mb - peak_wired if wired_limit_mb else None
+
+    if rise is None:
+        return "unknown", "mute"
+    if rise > SWAP_RISE_FAIL_MB:
+        return f"does not fit (+{rise:.0f} MB swap)", "fail"
+    if rise > SWAP_RISE_WARN_MB:
+        return f"marginal (+{rise:.0f} MB swap)", "warn"
+    if headroom is not None and headroom < HEADROOM_TIGHT_MB:
+        return "marginal (at the wired ceiling)", "warn"
     return "fits", "pass"
+
+
+def _fit_verdict(r):
+    return fit_verdict(r)
 
 
 def render_overview(results):
     rows = []
     for r in results:
+        ceiling = r.get("wired_ceiling_mb") or effective_wired_ceiling_mb()
         if not r.get("started"):
             rows.append(f"<tr><td><code>{esc(r['profile'])}</code></td>"
-                        f"<td colspan='6'>{badge('failed to start', 'fail')}</td></tr>")
+                        f"<td colspan='7'>{badge('failed to start', 'fail')}</td></tr>")
             continue
         p = r.get("peak") or {}
-        verdict, kind = _fit_verdict(r)
+        verdict, kind = fit_verdict(r, ceiling)
+        rise = swap_rise_mb(r)
+        wired = p.get("peak_wired_mb") or 0
         q = [c for c in r.get("quality", []) if c.get("ok")]
         rates = sorted(c["tokens_per_s"] for c in q if c.get("tokens_per_s"))
         med = rates[len(rates) // 2] if rates else "—"
@@ -164,21 +246,32 @@ def render_overview(results):
             "<tr>"
             f"<td><code>{esc(r['profile'])}</code></td>"
             f"<td class='mono'>{esc(r.get('model'))}</td>"
-            f"<td>{(p.get('peak_swap_mb') or 0):.0f} MB</td>"
-            f"<td>{(p.get('peak_wired_mb') or 0):.0f} MB</td>"
+            f"<td>{'—' if rise is None else f'+{rise:.0f} MB'}</td>"
+            f"<td>{wired:.0f} MB</td>"
+            f"<td>{(ceiling - wired):.0f} MB</td>"
             f"<td>{badge(verdict, kind)}</td>"
             f"<td>{tp}/{len(tools)}</td>"
             f"<td>{med}</td>"
             f"<td>{badge(f'{empty}/{len(q)}', 'fail' if empty else 'pass')}</td>"
             "</tr>")
+    ceiling = effective_wired_ceiling_mb()
     return f"""<h2>Overview</h2>
-<div class="note">Peak swap is absolute, sampled continuously across the whole profile
-lifetime. <strong>No answer</strong> counts prompts where the model spent its entire token
-budget on reasoning and returned nothing — any non-zero value means the quality comparison
-for that model is a budget artifact, not a capability signal.</div>
+<div class="note"><strong>Swap rise</strong> is peak minus this profile's own starting
+baseline, sampled continuously for its whole lifetime. It is deliberately not absolute
+swap: macOS does not reclaim swap eagerly, so a profile inherits whatever was already
+resting on the machine, and charging it for stale pages from a dead process flags healthy
+models as marginal. It is also not a point-sampled delta, which is blind to a rise that
+happens between samples.<br><br>
+<strong>Headroom</strong> is measured against a {ceiling:,} MB ceiling — the live
+<code>iogpu.wired_limit_mb</code> if something raised it, otherwise the macOS default
+heuristic of roughly 75% of RAM. That heuristic is community-derived, so treat headroom as
+indicative.<br><br>
+<strong>No answer</strong> counts prompts where the model spent its entire token budget on
+reasoning and returned nothing — any non-zero value means the quality comparison for that
+model is a budget artifact, not a capability signal.</div>
 <div class="scroll"><table>
-<thead><tr><th>Profile</th><th>Model</th><th>Peak swap</th><th>Peak wired</th>
-<th>Fit</th><th>Tools</th><th>Median tok/s</th><th>No answer</th></tr></thead>
+<thead><tr><th>Profile</th><th>Model</th><th>Swap rise</th><th>Peak wired</th>
+<th>Headroom</th><th>Fit</th><th>Tools</th><th>Median tok/s</th><th>No answer</th></tr></thead>
 <tbody>{''.join(rows)}</tbody></table></div>"""
 
 

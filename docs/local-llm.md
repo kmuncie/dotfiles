@@ -208,8 +208,25 @@ confident, wrong table, and they are worth knowing because they generalise:
       harness now samples continuously and reports the peak.
    3. **Swap *delta* hid the thrash.** macOS does not reclaim swap eagerly, so
       once one profile pushed swap to 2.6GB the next inherited that as its
-      baseline and its delta read `-40MB`. Absolute peak is the only honest
-      figure.
+      baseline and its delta read `-40MB`.
+
+That third point was then over-corrected, which is worth recording because the
+fix was wrong in the opposite direction. Switching to peak *absolute* swap
+charged every profile for whatever was already resting on the machine: with
+~900MB of pre-existing swap, all five profiles in the next run were flagged
+"marginal" while nothing had moved at all.
+
+The metric now is **peak minus the profile's own starting baseline**, sampled
+continuously. Continuous sampling is what makes a delta trustworthy — the
+original delta was not wrong as a *measure*, it was blind, because three point
+samples all landed in quiet moments. Subtracting the profile's own baseline is
+what removes the false alarms. Both corrections are needed; either alone
+produces a confident wrong answer, and each did.
+
+Validated against both historical runs and a set of synthetic cases: a healthy
+profile on a dirty machine (baseline 2600MB, no movement) reads `fits`, and a
+thrashing profile inheriting that same dirty baseline reads `does not fit`. The
+two earlier metrics each got exactly one of those two cases wrong.
 
 A fourth flaw corrupted the quality comparison rather than the memory one: a
 2048-token budget was exhausted by reasoning traces, so Qwen returned no final

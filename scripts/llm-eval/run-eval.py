@@ -109,18 +109,12 @@ SEED = 20260821
 # llamactl interface
 # ------------------------------------------------------------------------------
 
-def wired_limit_mb():
-    """llamactl's Metal ceiling, read from the script rather than duplicated here.
-
-    Only used to report headroom. If the constant ever moves, this finds it or falls
-    back to a clearly-wrong 0 rather than silently reporting stale headroom.
-    """
-    try:
-        src = Path(shutil.which("llamactl")).resolve().read_text()
-        m = re.search(r'^WIRED_LIMIT_MB="(\d+)"', src, re.M)
-        return int(m.group(1)) if m else 0
-    except Exception:
-        return 0
+# The effective wired ceiling comes from report.py, which reads the live sysctl and
+# falls back to the macOS ~75%-of-RAM heuristic when nothing has raised it. It used to
+# be scraped out of llamactl's WIRED_LIMIT_MB constant, which stopped working the
+# moment that constant became opt-in and empty by default — a headroom figure measured
+# against a limit nothing sets is worse than no figure at all.
+wired_limit_mb = report.effective_wired_ceiling_mb
 
 
 def llamactl(*args, check=False, capture=True):
@@ -484,9 +478,12 @@ def run_profile(name, cfg, outdir, quality_cases, tool_spec):
     if spec:
         print(f"  speculative: {spec}")
 
+    # Recorded per profile: the ceiling in force while THIS ran. A report rendered
+    # later would otherwise compute headroom against whatever the sysctl happens to
+    # say at render time, which may not be what the measurement saw.
     result = {"profile": name, **cfg, "started": True, "sampler": sampler,
               "speculative": spec, "load_seconds": round(load_s, 1),
-              "baseline": baseline}
+              "wired_ceiling_mb": wired_limit_mb(), "baseline": baseline}
     try:
         print("  [memory]")
         result["memory"] = eval_memory(pid, cfg["model"])
@@ -525,16 +522,20 @@ def render_summary(results):
         "",
         "## Memory and fit",
         "",
-        f"Memory is sampled continuously for the whole life of each profile and the "
-        f"**peak** is reported. Swap is absolute, not a delta from baseline: macOS does "
-        f"not reclaim swap eagerly, so a delta makes a thrashing model look clean once "
-        f"an earlier profile has already inflated the baseline.",
+        "Memory is sampled continuously for the whole life of each profile and the "
+        "**peak** is reported.",
         "",
-        f"`wired headroom` is the gap between peak wired memory and llamactl's "
-        f"{WIRED_LIMIT_MB}MB ceiling. A small gap means the model is running against "
-        f"the limit, which is where swap pressure comes from.",
+        "**Swap rise** is peak minus this profile's own starting baseline. Not absolute "
+        "swap — macOS does not reclaim eagerly, so a profile inherits whatever was "
+        "already resting on the machine, and charging it for stale pages from a dead "
+        "process flags healthy models as marginal. Not a point-sampled delta either, "
+        "which is blind to a rise that happens between samples.",
         "",
-        "| Profile | Load | Peak RSS | Peak wired | Wired headroom | Peak swap | Verdict |",
+        f"**Headroom** is measured against a {WIRED_LIMIT_MB:,}MB ceiling: the live "
+        "`iogpu.wired_limit_mb` if something raised it, otherwise the macOS default "
+        "heuristic of roughly 75% of RAM.",
+        "",
+        "| Profile | Load | Peak RSS | Peak wired | Headroom | Swap rise | Verdict |",
         "|---|---|---|---|---|---|---|",
     ]
     for r in results:
@@ -542,23 +543,17 @@ def render_summary(results):
             lines.append(
                 f"| `{r['profile']}` | — | — | — | — | — | **failed to start** |")
             continue
-        p, m = r["peak"], r["memory"]
-        swap, wired = p["peak_swap_mb"] or 0, p["peak_wired_mb"] or 0
-        headroom = WIRED_LIMIT_MB - wired
-        if not m["long_prompt_ok"]:
-            verdict = "**does not fit** (prompt failed)"
-        elif swap > 3000:
-            verdict = "**does not fit** (heavy swap)"
-        elif swap > 1500 or headroom < 1500:
-            verdict = "**marginal** (running at the ceiling)"
-        elif swap > 800:
-            verdict = "marginal"
-        else:
-            verdict = "fits"
+        p = r["peak"]
+        wired = p["peak_wired_mb"] or 0
+        rise = report.swap_rise_mb(r)
+        # Same function the HTML report calls, so the two cannot disagree.
+        verdict, kind = report.fit_verdict(r, WIRED_LIMIT_MB)
+        verdict = f"**{verdict}**" if kind == "fail" else verdict
         lines.append(
             f"| `{r['profile']}` | {r['load_seconds']}s "
             f"| {(p['peak_server_rss_mb'] or 0):.0f} MB | {wired:.0f} MB "
-            f"| {headroom:.0f} MB | {swap:.0f} MB | {verdict} |"
+            f"| {(WIRED_LIMIT_MB - wired):.0f} MB "
+            f"| {'—' if rise is None else f'+{rise:.0f} MB'} | {verdict} |"
         )
 
     lines += ["", "## Tool-calling reliability", "",

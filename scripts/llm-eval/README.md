@@ -27,12 +27,23 @@ outside `EVERYDAY_PROFILES` are labelled `candidate` and are skipped unless you 
 
 ## What it measures
 
-**Memory and fit.** Swap and wired memory are sampled at three points: before the server
-starts, after the model loads, and after a ~8k-token prompt. The third sample is the one
-that matters. A model that loads is not a model that fits — raising
-`iogpu.wired_limit_mb` converts an OOM crash into slow swap-thrashing, and only a real
-prompt distinguishes the two. Verdicts come from the swap delta, not from whether the
-server came up.
+**Memory and fit.** Swap and wired memory are sampled continuously for the whole life of
+each profile — through load, tool-calling, and every quality prompt — and the peak is
+kept. A model that loads is not a model that fits, and the difference only shows up under
+sustained work, so verdicts come from measured memory pressure rather than from whether
+the server came up.
+
+The verdict metric is **peak swap minus that profile's own starting baseline**. Both
+obvious alternatives are wrong, and both were tried:
+
+  * *Absolute peak* charges a profile for swap already resting on the machine before it
+    started. With ~900MB of pre-existing swap, every healthy profile reads "marginal".
+  * *Point-sampled delta* is blind between samples. Three samples once all landed in
+    quiet moments and cleared a model that was visibly sitting at 5-7GB of swap.
+
+Continuous sampling fixes the blindness; subtracting the profile's own baseline fixes the
+false alarms. Headroom is reported against the live `iogpu.wired_limit_mb`, or the macOS
+default heuristic of roughly 75% of RAM when nothing has raised it.
 
 **Tool-calling reliability.** Six cases against three tool definitions, driven through
 the same OpenAI-compatible endpoint Pi uses. Checks that the right tool is selected, that
