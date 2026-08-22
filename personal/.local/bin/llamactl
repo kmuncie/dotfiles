@@ -21,17 +21,50 @@ set -euo pipefail
 LLAMA_HOST="127.0.0.1"
 LLAMA_PORT="8080"
 
-# Metal wired-memory ceiling, in MB, applied only while a model is loaded.
-# 21000 of 24576 total, validated on this specific machine. This is an
-# undocumented Apple sysctl — read the "Downsides" section of docs/local-llm.md
-# before raising it. The headroom below 24576 is deliberate.
-WIRED_LIMIT_MB="21000"
+# Metal wired-memory ceiling, in MB. NOT applied by default any more.
+#
+# This used to be raised to 21000 on every start. It was necessary when the
+# profiles were 15-17GB models fighting for space: macOS's default heuristic
+# (~75% of RAM, so ~18.4GB here) was too low for them and the load hard-failed.
+#
+# The current profile peaks around 11.6GB of system-wide wired memory, which sits
+# comfortably under that default. Measured August 2026 with the limit untouched: a
+# 21k-token prompt completed in the same 63s, and swap did not move at all.
+#
+# So the raise now buys nothing, and it is not free. It is an undocumented Apple
+# sysctl, it needs a sudoers drop-in, and — the part that matters — it lets Metal
+# claim more *non-pageable* memory, which pushes every other process on the
+# machine closer to swap. It converts an OOM crash into swap-thrash; it does not
+# reduce swap. Leaving it alone is the lower-risk default now that nothing needs
+# it.
+#
+# Set LLAMACTL_WIRED_LIMIT_MB=21000 to opt in for a session — worth doing when
+# evaluating a model large enough to hit the default ceiling. `stop` resets the
+# sysctl to 0 whenever it finds it non-zero, so an opted-in session cannot leave
+# the machine in a raised state even if this variable is unset in that shell.
+WIRED_LIMIT_MB="${LLAMACTL_WIRED_LIMIT_MB:-}"
 
 # Full path, and it must stay in sync with the sudoers rule in
 # scripts/llamactl-wired-limit.sudoers. A mismatched path makes the rule fail to
 # match and sudo falls back to prompting for a password.
 SYSCTL_BIN="/usr/sbin/sysctl"
 WIRED_LIMIT_KEY="iogpu.wired_limit_mb"
+
+# Vision is off by default. Two reasons, and the second is the bigger one:
+#
+#   1. Memory. The projector is dead weight for text work — ~170MB on this model,
+#      879MB on the Qwen3.5-9B it replaced. On a 24GB machine that is a real
+#      fraction of the headroom.
+#
+#   2. --cache-reuse. llama-server logs "cache_reuse is not supported by
+#      multimodal, it will be disabled" and then ignores the --cache-reuse 256
+#      below. Gemma-4 is multimodal, so prompt-prefix reuse would silently never
+#      run. Dropping the projector turns it back on, which matters most for `code`,
+#      where each turn re-sends a long and largely unchanged prefix.
+#
+# Set LLAMACTL_VISION=1 to load the projector for a session that genuinely needs
+# to send images. Expect the memory back and --cache-reuse off again.
+VISION="${LLAMACTL_VISION:-0}"
 
 PIDFILE="$HOME/.cache/llama-server/llama-server.pid"
 PROFILEFILE="$HOME/.cache/llama-server/llama-server.profile"
@@ -40,14 +73,89 @@ mkdir -p "$(dirname "$PIDFILE")"
 
 # profile name -> "<hf-repo>:<quant> <context-size>"
 #
-# Keep these at or below the ~12-14B dense class (~7-9GB of Q4_K_M weights).
-# Dense 27-30B models are marketed as fitting a 24GB machine and do not; they
-# OOM or swap-thrash here regardless of the wired limit. See docs/local-llm.md.
+# Keep the everyday profiles at or below the ~12-14B dense class (~7-9GB of
+# Q4_K_M weights). Dense 27-30B models are marketed as fitting a 24GB machine
+# and do not; they OOM or swap-thrash here regardless of the wired limit.
+#
+# That ceiling was re-tested in August 2026 against Qwen3.8-27B at both
+# UD-IQ4_XS and UD-Q4_K_M, and it held. Do not re-litigate it without reading
+# the "The 27B re-test" section of docs/local-llm.md first — the measurements
+# are recorded there, along with the three separate ways the first attempts
+# measured the wrong thing.
+#
+# One model serves everything as of August 2026. `chat` and `code` are client-side
+# modes — the only difference is whether Pi gets tools — so they share a server
+# rather than each owning one. Switching between them no longer reloads anything,
+# which is the practical reason to consolidate rather than merely a tidiness one.
+#
+# The model is Gemma-4-12B QAT with multi-token prediction, chosen on measurements
+# in docs/local-llm.md: 47.5 tok/s against 28.1 for the old coding profile and 41.9
+# for the old 9B chat profile, on less memory than either, with 6/6 tool-calling.
+#
+# Context is 32768, doubled from the 16384 both old profiles used. The measured
+# peak was 10714MB against a 21000MB ceiling, so there was roughly 10GB spare and
+# no reason to keep paying for a small window. Re-verify with scripts/llm-eval
+# after changing it: KV cache scales with context, and the headroom is what makes
+# this model comfortable.
 typeset -A PROFILES
 PROFILES=(
-    chat    "unsloth/Qwen3.5-9B-GGUF:Q4_K_M 16384"
-    coding  "bartowski/gemma-4-12B-it-GGUF:Q4_K_M 16384"
+    default "unsloth/gemma-4-12B-it-qat-GGUF:UD-Q4_K_XL 32768"
 )
+
+# Speculative-decoding setup, per profile. Empty for everything else.
+#
+# The two families package MTP differently, which is not obvious and is worth
+# recording rather than rediscovering:
+#
+#   Qwen3.5-9B-MTP  ships the MTP layers inside the main GGUF (5.9GB vs 5.4GB
+#                   for the plain build), so it needs a --spec-type and no
+#                   separate draft model at all.
+#   Gemma-4-12B     keeps its MTP head as a standalone ~0.3GB file in the same
+#                   repo, loaded with -hfd. The :Q4_0 tag is unambiguous there
+#                   because the main weights are UD-Q4_K_XL, which does not
+#                   contain the string "Q4_0".
+#
+# Verify with `llamactl logs` that the draft model actually loaded. A wrong tag
+# does not necessarily fail loudly, and a silently-absent draft model would make
+# an MTP profile identical to its baseline while looking like it ran.
+typeset -A DRAFTS
+DRAFTS=(
+    default "--spec-type draft-mtp -hfd unsloth/gemma-4-12B-it-qat-GGUF:Q4_0"
+)
+
+# Sampler defaults, per profile, as published by each model's authors.
+#
+# These belong here rather than in a client because llama-server's own defaults
+# (temp 0.80, top_k 40, top_p 0.95, min_p 0.05) are not right for either model,
+# and every client that does not override them inherits those wrong values —
+# Pi sessions included, not just evaluation runs. Setting them at the server
+# means one place to be correct.
+#
+# Gemma-4-12B. Google publishes a single standardized configuration for all use
+# cases: temperature 1.0, top_p 0.95, top_k 64. That "all use cases" is why one
+# entry now covers both chat and coding — there is no per-task variant to choose
+# between, unlike Qwen, which published different values for chat and for precise
+# coding.
+#
+# min_p is set to 0.0 (disabled) rather than left at llama-server's 0.05, because
+# Google specifies those three parameters and adding a fourth sampler they did
+# not ask for is a silent deviation.
+# https://huggingface.co/google/gemma-4-12b-it
+#
+# A profile with no entry here simply inherits llama-server's defaults.
+typeset -A SAMPLERS
+SAMPLERS=(
+    default "--temp 1.0 --top-p 0.95 --top-k 64 --min-p 0.0"
+)
+
+# Profiles safe for everyday use. Anything in PROFILES but not listed here is a
+# candidate under evaluation, reachable only via an explicit `llamactl start
+# <name>`, so a stray tab-complete cannot load an untested model.
+#
+# There is only one profile now. The mechanism stays because it is how the next
+# model gets evaluated: add it to PROFILES, leave it out of this list, run
+# scripts/llm-eval against it, and promote it only on the numbers.
+EVERYDAY_PROFILES=(default)
 
 # Provider name as configured in personal/.pi/agent/models.json, stowed to
 # ~/.pi/agent/models.json. That file hardcodes the port in its baseUrl and JSON
@@ -65,11 +173,6 @@ PI_PROVIDER="llama-cpp"
 set_wired_limit() {
     local value="$1"
 
-    if [[ "${LLAMACTL_SKIP_WIRED_LIMIT:-0}" == "1" ]]; then
-        echo "LLAMACTL_SKIP_WIRED_LIMIT=1 — leaving $WIRED_LIMIT_KEY alone."
-        return 0
-    fi
-
     if sudo -n "$SYSCTL_BIN" "$WIRED_LIMIT_KEY=$value" > /dev/null 2>&1; then
         return 0
     fi
@@ -77,7 +180,11 @@ set_wired_limit() {
     cat >&2 <<EOF
 Error: cannot set $WIRED_LIMIT_KEY=$value without a password prompt.
 
-Install the scoped sudoers rule (one time), from the dotfiles repo:
+This only runs when LLAMACTL_WIRED_LIMIT_MB is set. The default profile does not
+need it — unset that variable and the server will start normally.
+
+If you are evaluating a model large enough to need a raised ceiling, install the
+scoped sudoers rule (one time), from the dotfiles repo:
 
     sudo visudo -c -f scripts/llamactl-wired-limit.sudoers && \\
     sudo install -m 0440 -o root -g wheel \\
@@ -86,12 +193,19 @@ Install the scoped sudoers rule (one time), from the dotfiles repo:
     sudo visudo -c
 
 Then confirm the scope with: sudo -l
-
-To run anyway without touching the wired limit (smaller models only):
-
-    LLAMACTL_SKIP_WIRED_LIMIT=1 llamactl start <profile>
 EOF
     return 1
+}
+
+# Reset the ceiling if anything raised it, regardless of whether this shell is
+# the one that did. Reads the live sysctl rather than trusting a variable, so a
+# session that opted in cannot leave the machine in a raised state.
+reset_wired_limit_if_raised() {
+    local current
+    current=$("$SYSCTL_BIN" -n "$WIRED_LIMIT_KEY" 2> /dev/null) || return 0
+    [[ "$current" == "0" ]] && return 0
+    echo "Resetting $WIRED_LIMIT_KEY (was $current) to the macOS default."
+    set_wired_limit 0 || true
 }
 
 # ------------------------------------------------------------------------------
@@ -137,26 +251,93 @@ status() {
 
 stop() {
     stop_server
-    # Back to the default heuristic so the wider ceiling exists only while a
-    # model is actually loaded.
-    set_wired_limit 0
+    # Only acts if something actually raised the ceiling. Normally a no-op now.
+    reset_wired_limit_if_raised
+}
+
+# Machine-readable profile table: "<name>\t<model>\t<ctx>\t<everyday|candidate>".
+# scripts/llm-eval parses this so the profile list lives in exactly one place —
+# an eval that invented its own model table would drift from what actually runs.
+profiles() {
+    local name model ctx kind
+    for name in ${(k)PROFILES}; do
+        read -r model ctx <<< "${PROFILES[$name]}"
+        if (( ${EVERYDAY_PROFILES[(Ie)$name]} )); then
+            kind="everyday"
+        else
+            kind="candidate"
+        fi
+        printf '%s\t%s\t%s\t%s\n' "$name" "$model" "$ctx" "$kind"
+    done | sort
+}
+
+# The PID of the running llama-server, for external tools that need to sample
+# its memory. Prints nothing and exits non-zero when nothing is loaded.
+pid() {
+    server_pid
 }
 
 start() {
-    local profile="${1:-coding}"
+    local profile="${1:-default}"
 
     if [[ -z "${PROFILES[$profile]:-}" ]]; then
         echo "Unknown profile '$profile'. Options: ${(k)PROFILES}" >&2
         return 1
     fi
 
+    # Idempotent: if the requested profile is already serving, reuse it.
+    #
+    # This is the concrete payoff of consolidating onto one model. `chat` and
+    # `code` differ only in whether Pi is given tools, which is a client flag, so
+    # they can share a server. Switching between them used to mean unloading
+    # several GB and reloading several more; now it is instant.
+    #
+    # `restart` exists for when you actually want a fresh server.
+    if [[ "$(cat "$PROFILEFILE" 2> /dev/null)" == "$profile" ]] && server_pid > /dev/null; then
+        if curl -sf "http://$LLAMA_HOST:$LLAMA_PORT/health" > /dev/null 2>&1; then
+            echo "$profile already serving on http://$LLAMA_HOST:$LLAMA_PORT/v1 — reusing."
+            return 0
+        fi
+        # Running but not answering /health means it is still loading or wedged.
+        # Fall through and restart rather than hand back a server that is not ready.
+        echo "Server is up but not healthy; restarting."
+    fi
+
     stop_server
-    set_wired_limit "$WIRED_LIMIT_MB"
+    # Opt-in only. The default profile does not need a raised ceiling; see the
+    # WIRED_LIMIT_MB comment at the top of this file.
+    if [[ -n "$WIRED_LIMIT_MB" ]]; then
+        set_wired_limit "$WIRED_LIMIT_MB"
+    fi
 
     local model ctx
     read -r model ctx <<< "${PROFILES[$profile]}"
 
-    echo "Starting $model (ctx=$ctx, wired limit ${WIRED_LIMIT_MB}MB)..."
+    # See the VISION constant above for why the projector is dropped by default.
+    local -a vision_args
+    if [[ "$VISION" == "1" ]]; then
+        vision_args=()
+        echo "LLAMACTL_VISION=1 — loading the vision projector. --cache-reuse will be" \
+             "disabled by llama-server as a result."
+    else
+        vision_args=(--no-mmproj)
+    fi
+
+    # Word-split deliberately: these entries are flag strings.
+    local -a sampler_args draft_args
+    sampler_args=(${=SAMPLERS[$profile]:-})
+    draft_args=(${=DRAFTS[$profile]:-})
+
+    echo "Starting $model (ctx=$ctx, vision=$VISION," \
+         "wired limit ${WIRED_LIMIT_MB:-macOS default})..."
+    if (( ${#sampler_args} )); then
+        echo "  sampler: ${sampler_args[*]}"
+    else
+        echo "  sampler: llama-server defaults (no entry in SAMPLERS for '$profile')"
+    fi
+    if (( ${#draft_args} )); then
+        echo "  speculative: ${draft_args[*]}"
+    fi
 
     # --parallel 1 is load-bearing: llama-server defaults to 4 slots and each
     # slot gets its own copy of the -c context window, so the default silently
@@ -166,6 +347,7 @@ start() {
         --parallel 1 -ngl 99 -c "$ctx" \
         --jinja -fa on --cache-reuse 256 \
         --cache-type-k q8_0 --cache-type-v q8_0 \
+        "${vision_args[@]}" "${sampler_args[@]}" "${draft_args[@]}" \
         > "$LOGFILE" 2>&1 &
 
     echo $! > "$PIDFILE"
@@ -177,17 +359,32 @@ start() {
     # an hour.
     local timeout=3600 i
     for i in {1..$timeout}; do
-        if curl -s "http://$LLAMA_HOST:$LLAMA_PORT/v1/models" > /dev/null 2>&1; then
-            echo "Server is up on http://$LLAMA_HOST:$LLAMA_PORT/v1"
+        # /health, not /v1/models, and -f, not bare -s. Both matter:
+        #
+        #   * llama-server binds the port and answers /v1/models as soon as the
+        #     listener is up — while the model is still being read from disk. A
+        #     5GB model finishes loading before you notice; a 15GB one does not,
+        #     and every request until it does returns 503.
+        #   * `curl -s` exits 0 on a 503. Only -f turns an HTTP error into a
+        #     non-zero exit, which is what this loop is actually testing for.
+        #
+        # Together those made `start` return in ~1s for every profile regardless
+        # of size, and silently handed callers a server that was not ready. See
+        # the "Readiness" section of docs/local-llm.md.
+        if curl -sf "http://$LLAMA_HOST:$LLAMA_PORT/health" > /dev/null 2>&1; then
+            echo "Server is up on http://$LLAMA_HOST:$LLAMA_PORT/v1 (${i}s)"
             return 0
         fi
         if ! server_pid > /dev/null; then
             echo "llama-server exited during startup — check $LOGFILE" >&2
             return 1
         fi
-        # Heartbeat, so a multi-GB first download does not look like a hang.
+        # Heartbeat, so a multi-GB download or load does not look like a hang.
+        # A 15GB model takes a real minute or two to read off disk even when it
+        # is already cached, and /health returns 503 for that whole window.
         if (( i % 30 == 0 )); then
-            echo "  ...still starting (${i}s). First run downloads the model; llamactl logs to follow."
+            echo "  ...still starting (${i}s). First run downloads the model, and large" \
+                 "models take a while to load; llamactl logs to follow."
         fi
         sleep 1
     done
@@ -273,12 +470,12 @@ code() {
     pi_bin=$(find_pi) || return 1
     # Pi's shebang needs `node`, which sits in the same directory.
     export PATH="${pi_bin:h}:$PATH"
-    start coding
+    start default
     cd "$dir"
     # Pass the model explicitly so the profile table above stays the single
     # source of truth, even if ~/.pi/agent/models.json drifts. Without
     # --provider, Pi defaults to its cloud provider rather than this server.
-    "$pi_bin" --provider "$PI_PROVIDER" --model "$(profile_model coding)" "$@"
+    "$pi_bin" --provider "$PI_PROVIDER" --model "$(profile_model default)" "$@"
 }
 
 # Casual chat: same TUI, smaller model, tools off so it cannot touch files.
@@ -288,8 +485,8 @@ chat() {
     pi_bin=$(find_pi) || return 1
     # Pi's shebang needs `node`, which sits in the same directory.
     export PATH="${pi_bin:h}:$PATH"
-    start chat
-    "$pi_bin" --provider "$PI_PROVIDER" --model "$(profile_model chat)" --no-tools "$@"
+    start default
+    "$pi_bin" --provider "$PI_PROVIDER" --model "$(profile_model default)" --no-tools "$@"
 }
 
 # ------------------------------------------------------------------------------
@@ -297,30 +494,45 @@ chat() {
 # ------------------------------------------------------------------------------
 
 case "${1:-}" in
-    start)   start "${2:-coding}" ;;
-    stop)    stop ;;
-    status)  status ;;
-    restart) stop_server; start "${2:-coding}" ;;
-    code)    code "${2:-.}" "${@:3}" ;;
-    chat)    chat "${@:2}" ;;
-    logs)    tail -f "$LOGFILE" ;;
+    start)    start "${2:-default}" ;;
+    stop)     stop ;;
+    status)   status ;;
+    restart)  stop_server; start "${2:-default}" ;;
+    code)     code "${2:-.}" "${@:3}" ;;
+    chat)     chat "${@:2}" ;;
+    logs)     tail -f "$LOGFILE" ;;
+    profiles) profiles ;;
+    pid)      pid ;;
     *)
         cat <<EOF
 llamactl — local llama.cpp server + Pi
 
 Everyday use:
-  llamactl chat            Casual chat (9B model, tools off)
-  llamactl code [dir]      Coding agent in [dir] (12B model, full tools)
+  llamactl chat            Casual chat (tools off)
+  llamactl code [dir]      Coding agent in [dir] (full tools)
   llamactl stop            Shut down and release memory
 
-Both commands start the server themselves. Run stop when you are done —
-it frees the model and resets the Metal wired-memory ceiling.
+Both run the same model and share one server, so switching between them
+is instant — no reload. Both start the server themselves. Run stop when
+you are done; it frees the model and resets the wired-memory ceiling.
 
 Server management:
-  llamactl start [chat|coding]     Start the server only, no client
-  llamactl restart [chat|coding]
+  llamactl start [profile]         Start the server only, no client
+  llamactl restart [profile]
   llamactl status                  Running? which profile? memory pressure?
   llamactl logs                    Follow the server log
+  llamactl profiles                List profiles (name, model, ctx, kind)
+  llamactl pid                     PID of the running server, if any
+
+Profiles marked "candidate" are under evaluation and are not sized for
+everyday use. See scripts/llm-eval in the dotfiles repo.
+
+Environment:
+  LLAMACTL_VISION=1            Load the multimodal projector (off by default;
+                               costs ~0.2-0.9GB and disables --cache-reuse)
+  LLAMACTL_WIRED_LIMIT_MB=N    Raise the Metal wired ceiling to N MB for this
+                               session (needs the sudoers drop-in). Off by
+                               default; the current model does not need it.
 
 Docs: ~/dotfiles/docs/local-llm.md
 EOF

@@ -1,0 +1,50 @@
+[
+   {
+      "id": "code-debug",
+      "category": "coding",
+      "prompt": "This Python function is supposed to return the second-largest distinct value in a list, but it has a bug. Identify the bug and give a corrected version.\n\ndef second_largest(nums):\n    nums.sort()\n    return nums[-2]",
+      "looking_for": "Notes that duplicates break it (and/or lists shorter than 2). Correct fix dedupes before indexing. Bonus for noting sort() mutates the caller's list."
+   },
+   {
+      "id": "code-write",
+      "category": "coding",
+      "prompt": "Write a zsh function called `port` that takes a port number and prints the PID and command name of whatever is listening on it, or prints 'nothing listening on <port>' if the port is free. Handle the case where the argument is missing.",
+      "looking_for": "Uses lsof -nP -iTCP:$1 -sTCP:LISTEN or similar. Guards against a missing argument. Correct zsh syntax, not bash-only constructs."
+   },
+   {
+      "id": "code-review",
+      "category": "coding",
+      "prompt": "Review this shell snippet for correctness problems:\n\n#!/bin/sh\nfor f in $(ls *.txt); do\n  rm $f\ndone",
+      "looking_for": "Parsing ls is wrong; unquoted $f breaks on whitespace; glob should be used directly; no nullglob guard so the literal '*.txt' is passed when no files match."
+   },
+   {
+      "id": "reason-constraint",
+      "category": "reasoning",
+      "prompt": "A machine has 24GB of unified memory shared between CPU and GPU. A model's weights are 16.5GB. The KV cache needs 140KB per token and you want a 16384-token context. There is also a ~1GB compute buffer. Does this fit if the OS needs at least 4GB? Show the arithmetic.",
+      "looking_for": "KV = 16384 * 140KB = 2.29GB. Total = 16.5 + 2.29 + 1 = 19.8GB. Leaves 4.2GB. Technically fits but with almost no margin. Correct arithmetic matters more than the verdict."
+   },
+   {
+      "id": "reason-trap",
+      "category": "reasoning",
+      "prompt": "I set iogpu.wired_limit_mb to 21000 on a 24GB Mac and my 17GB model stopped crashing, so the memory problem is solved. Is that reasoning sound?",
+      "looking_for": "Should push back: raising the wired limit changes the failure mode from OOM crash to swap thrashing, it does not create memory. Needs swap monitoring to confirm an actual fit."
+   },
+   {
+      "id": "summarize",
+      "category": "summarization",
+      "prompt": "Summarize the following in exactly three bullet points, no preamble:\n\nllama-server defaults to --parallel 4. Each parallel slot receives its own full copy of the context window specified by -c. A user requesting a 16384-token context therefore silently allocates four separate 16384-token KV caches rather than one. On a memory-constrained machine this quadruples the KV footprint and was the direct cause of an out-of-memory crash. Passing --parallel 1 restores the expected single-slot behaviour.",
+      "looking_for": "Exactly three bullets. No preamble. Instruction-following is the point here as much as content."
+   },
+   {
+      "id": "format-strict",
+      "category": "instruction-following",
+      "prompt": "Return only valid JSON, no markdown fences and no commentary, with keys \"language\", \"year\", and \"typed\" describing the Rust programming language.",
+      "looking_for": "Raw parseable JSON with exactly those three keys. Any fence, prose, or extra key is a miss. Scored automatically."
+   },
+   {
+      "id": "refuse-hallucination",
+      "category": "calibration",
+      "prompt": "What were the headline changes in llama.cpp build 10360?",
+      "looking_for": "Should admit it does not know the contents of a specific recent build rather than inventing a changelog. Confabulation is the failure mode being probed."
+   }
+]

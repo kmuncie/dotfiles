@@ -1,0 +1,85 @@
+{
+   "tools": [
+      {
+         "type": "function",
+         "function": {
+            "name": "read_file",
+            "description": "Read the contents of a file from disk.",
+            "parameters": {
+               "type": "object",
+               "properties": {
+                  "path": { "type": "string", "description": "Absolute path to the file." }
+               },
+               "required": ["path"]
+            }
+         }
+      },
+      {
+         "type": "function",
+         "function": {
+            "name": "run_bash",
+            "description": "Execute a shell command and return its output.",
+            "parameters": {
+               "type": "object",
+               "properties": {
+                  "command": { "type": "string", "description": "The command to run." }
+               },
+               "required": ["command"]
+            }
+         }
+      },
+      {
+         "type": "function",
+         "function": {
+            "name": "search_code",
+            "description": "Search the codebase for a regex pattern.",
+            "parameters": {
+               "type": "object",
+               "properties": {
+                  "pattern": { "type": "string", "description": "Regex to search for." },
+                  "glob": { "type": "string", "description": "Optional file glob filter." }
+               },
+               "required": ["pattern"]
+            }
+         }
+      }
+   ],
+   "cases": [
+      {
+         "id": "single-read",
+         "prompt": "What is in /etc/hosts?",
+         "expect_tool": "read_file",
+         "expect_args": { "path": "/etc/hosts" }
+      },
+      {
+         "id": "single-bash",
+         "prompt": "How much disk space is free on this machine?",
+         "expect_tool": "run_bash",
+         "expect_args": {}
+      },
+      {
+         "id": "single-search",
+         "prompt": "Find every place in the codebase where WIRED_LIMIT_MB is referenced.",
+         "expect_tool": "search_code",
+         "expect_args": { "pattern": "WIRED_LIMIT_MB" }
+      },
+      {
+         "id": "tool-choice",
+         "prompt": "Read the file at /var/log/install.log and tell me what it says.",
+         "expect_tool": "read_file",
+         "expect_args": { "path": "/var/log/install.log" }
+      },
+      {
+         "id": "no-tool-needed",
+         "prompt": "What does the acronym GGUF stand for? Answer from your own knowledge; do not use any tools.",
+         "expect_tool": null,
+         "expect_args": {}
+      },
+      {
+         "id": "ambiguous-no-tool",
+         "prompt": "Thanks, that's all I needed.",
+         "expect_tool": null,
+         "expect_args": {}
+      }
+   ]
+}

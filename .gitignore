@@ -36,3 +36,8 @@ personal/.pi/*
 !personal/.pi/agent/
 personal/.pi/agent/*
 !personal/.pi/agent/models.json
+
+# Python bytecode. scripts/llm-eval/run-eval.py imports report.py as a module,
+# which makes CPython write one of these next to the source.
+__pycache__/
+*.pyc
