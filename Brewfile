@@ -115,6 +115,7 @@ brew "csvkit"
 # brew "neofetch"           # discontinued upstream (2024) — consider `fastfetch`; `neofetch` alias breaks until re-enabled
 brew "mas"                   # Mac App Store CLI (for mas entries below)
 brew "asimov"                # excludes node_modules/target/etc from Time Machine
+brew "duti"                  # set default apps for file types (.md -> Sublime Text)
 
 # ------------------------------------------------------------------------------
 # Local LLM tooling

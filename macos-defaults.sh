@@ -79,6 +79,17 @@ defaults write NSGlobalDomain NSWindowResizeTime -float 0.001               # fa
 defaults write NSGlobalDomain NSQuitAlwaysKeepsWindows -bool false          # don't reopen windows after quit/reboot
 
 # ------------------------------------------------------------------------------
+# Default apps (duti — installed via Brewfile)
+# Bind by UTI, not extension: the extension form (`duti -s ... .md all`) fails
+# silently on recent macOS.
+# ------------------------------------------------------------------------------
+if command -v duti &> /dev/null; then
+    duti -s com.sublimetext.4 net.daringfireball.markdown all  # .md -> Sublime Text
+else
+    echo "duti not installed (run 'brew bundle' first) — skipping default app bindings."
+fi
+
+# ------------------------------------------------------------------------------
 # Optional — left commented; uncomment to enable.
 # ------------------------------------------------------------------------------
 # Require password immediately after sleep / screensaver (security; small UX cost):
