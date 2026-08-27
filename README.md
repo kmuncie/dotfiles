@@ -26,6 +26,7 @@ public**:
 |------|-----|
 | `~/.ssh/config` | Contains internal hostnames, bastions, jump hosts, and usernames. Only the public-safe `Host *` defaults are tracked, as `personal/.ssh/config.d/10-defaults.conf`, pulled in by an `Include` near the bottom of the real file. That placement is load-bearing — see the comments in both files. |
 | `~/.pi/agent/auth.json` and siblings | Provider credentials and machine state. Only `models.json` is tracked. |
+| `~/.zshrc.local` | Internal tailnet hostnames (e.g. the headscale exit-node alias). Not tracked at all; `personal/.zshrc` sources it if present. |
 
 ## Setup
 

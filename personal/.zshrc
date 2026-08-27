@@ -260,6 +260,17 @@ fi
 # Use the 1Password agent for SSH
 export SSH_AUTH_SOCK=~/Library/Group\ Containers/2BUA8C4S2C.com.1password/t/agent.sock
 
+# Tailscale exit node toggle. Driven via the app's CLI shim rather than the
+# menu bar picker because the macOS GUI doesn't list self-hosted/headscale
+# exit nodes (upstream bug), even though this CLI works fine. The target
+# hostname is an internal tailnet name, so it lives in the untracked
+# ~/.zshrc.local (this repo is public) rather than here -- see README's
+# "Deliberately Unmanaged" section.
+TAILSCALE_CLI=/Applications/Tailscale.app/Contents/MacOS/Tailscale
+
+# Machine-local, untracked overrides (see README's "Deliberately Unmanaged").
+[ -f ~/.zshrc.local ] && source ~/.zshrc.local
+
 # Profiling - uncomment to use
 # zmodload zsh/zprof
 
