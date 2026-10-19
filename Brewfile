@@ -145,6 +145,7 @@ cask "grandperspective"
 cask "imageoptim"
 cask "iterm2"
 cask "maccy"
+cask "macpacker"             # archive manager (zip/rar/7z/etc.)
 cask "macparakeet"           # local speech-to-text / meeting transcription
 # cask "mactex"            # ~5GB TeX distribution — re-enable if you need LaTeX
 cask "microsoft-auto-update"
