@@ -77,33 +77,56 @@ config.tab_max_width = 40
 -- ============================================================================
 
 -- Project directory configuration
--- The directory that contains all your projects.
+-- The directory that contains all your projects. Projects are grouped in
+-- buckets one level down (e.g. ~/Code/BETHEL/<repo>, ~/Code/PERSONAL/<repo>).
 local project_dir = wezterm.home_dir .. "/Code"
 
+-- Returns true when the path is a directory. wezterm.glob also returns
+-- files, and read_dir fails on anything that is not a directory.
+local function is_dir(path)
+   return (pcall(wezterm.read_dir, path))
+end
+
 -- Function to discover all available projects
--- Scans the project directory and returns a list of all subdirectories
+-- Returns each bucket in the project directory, followed by its subdirectories
 local function project_dirs()
    -- Start with your home directory as a project, 'cause you might want
    -- to jump straight to it sometimes.
    local projects = { wezterm.home_dir }
 
    -- WezTerm comes with a glob function! Let's use it to get a lua table
-   -- containing all subdirectories of your project folder.
-   for _, dir in ipairs(wezterm.glob(project_dir .. "/*")) do
-      -- ... and add them to the projects table.
-      table.insert(projects, dir)
+   -- containing the buckets, then the repos inside each bucket.
+   for _, bucket in ipairs(wezterm.glob(project_dir .. "/*")) do
+      if is_dir(bucket) then
+         -- The bucket itself is a choice too, so you can jump to it
+         table.insert(projects, bucket)
+
+         for _, dir in ipairs(wezterm.glob(bucket .. "/*")) do
+            if is_dir(dir) then
+               table.insert(projects, dir)
+            end
+         end
+      end
    end
 
    return projects
 end
 
 -- Project selector function
--- Creates a fuzzy-searchable project picker that opens projects in new workspaces
+-- Creates a fuzzy-searchable project picker that opens projects in new tabs
 local function choose_project()
-   -- Convert project directories into choices for the input selector
+   -- Convert project directories into choices for the input selector. The
+   -- label is the path relative to the project directory ("BETHEL/<repo>"),
+   -- so you can filter by bucket. The id holds the full path.
    local choices = {}
    for _, value in ipairs(project_dirs()) do
-      table.insert(choices, { label = value })
+      local label = value
+      if value:sub(1, #project_dir + 1) == project_dir .. "/" then
+         label = value:sub(#project_dir + 2)
+      elseif value == wezterm.home_dir then
+         label = "~"
+      end
+      table.insert(choices, { id = value, label = label })
    end
 
    -- Return an InputSelector action that presents the project choices
@@ -112,23 +135,17 @@ local function choose_project()
       choices = choices,
       fuzzy = true, -- Enable fuzzy searching
       action = wezterm.action_callback(function(child_window, child_pane, id, label)
-         -- "label" may be empty if nothing was selected. Don't bother doing anything
+         -- "id" may be empty if nothing was selected. Don't bother doing anything
          -- when that happens.
-         if not label then
+         if not id then
             return
          end
 
-         -- The SwitchToWorkspace action will switch us to a workspace if it already exists,
-         -- otherwise it will create it for us.
+         -- Open a new tab in the current window with the working directory set
+         -- to the directory that was picked. A new tab (not a new workspace)
+         -- keeps all other tabs visible.
          child_window:perform_action(
-            act.SwitchToWorkspace({
-               -- We'll give our new workspace a nice name, like the last path segment
-               -- of the directory we're opening up.
-               name = label:match("([^/]+)$"),
-               -- Here's the meat. We'll spawn a new terminal with the current working
-               -- directory set to the directory that was picked.
-               spawn = { cwd = label },
-            }),
+            act.SpawnCommandInNewTab({ cwd = id }),
             child_pane
          )
       end),
@@ -262,8 +279,8 @@ local leader_keys = {
    {
       key = "f",
       mods = "LEADER",
-      action = act.ShowLauncherArgs({ flags = "FUZZY|WORKSPACES" }),
-      desc = "Workspace finder",
+      action = act.ShowLauncherArgs({ flags = "FUZZY|TABS|WORKSPACES" }),
+      desc = "Find tab or workspace",
    },
 
    -- Help
