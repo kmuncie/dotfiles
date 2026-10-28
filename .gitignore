@@ -28,6 +28,15 @@ personal/.config/gh/hosts.yml
 # here. Regenerate rather than check in.
 personal/.config/devin/
 
+# paperless-triage configuration: the Paperless server URL, a 1Password item ID and
+# household notes for the prompt. The script is public; this file is not. See
+# docs/paperless.md for its format.
+personal/.config/paperless-triage/
+
+# actual-sofi working files: budget restore points, plans with payees and amounts, and
+# an op.env. Private financial data, never for a public repo.
+personal/.config/actual-sofi/
+
 # Pi coding agent. Only models.json is tracked — it holds the local llama.cpp
 # provider definition, which is real config. Everything else in that directory is
 # either machine state or secret: auth.json holds provider credentials, and this
