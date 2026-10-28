@@ -27,6 +27,7 @@ public**:
 | `~/.ssh/config` | Contains internal hostnames, bastions, jump hosts, and usernames. Only the public-safe `Host *` defaults are tracked, as `personal/.ssh/config.d/10-defaults.conf`, pulled in by an `Include` near the bottom of the real file. That placement is load-bearing — see the comments in both files. |
 | `~/.pi/agent/auth.json` and siblings | Provider credentials and machine state. Only `models.json` is tracked. |
 | `~/.zshrc.local` | Internal tailnet hostnames (e.g. the headscale exit-node alias). Not tracked at all; `personal/.zshrc` sources it if present. |
+| `~/.config/paperless-triage/config.json` | Paperless server URL, a 1Password item ID, and household notes for the prompt. Lives inside the stowed `personal/.config/`, so `.gitignore` excludes it. Format in [`docs/paperless.md`](docs/paperless.md). |
 
 ## Setup
 
@@ -133,7 +134,8 @@ These are installed via `brew bundle` from the Brewfile:
 | `grep` | GNU grep |
 | `gnupg` + `pinentry-mac` | GPG commit signing (YubiKey) |
 | `granted` | AWS role assumption (`assume` function) |
-| `llama.cpp` | Local GGUF inference, driven by `llamactl` (see [`docs/local-llm.md`](docs/local-llm.md)) |
+| `llama.cpp` | Local GGUF inference, driven by `llamactl` (see [`docs/local-llm.md`](docs/local-llm.md)), and used by `paperless-triage` (see [`docs/paperless.md`](docs/paperless.md)) |
+| `1password-cli` | `op`, which `paperless-triage` uses to read the Paperless login |
 
 ### Migrating from the old makesymlinks.sh
 
