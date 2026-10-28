@@ -2,7 +2,7 @@
 
 Running local GGUF models on this machine — an M5 Pro MacBook Pro with 24GB of
 unified memory — for casual chat and for coding work through the
-[Pi coding agent](https://www.npmjs.com/package/@mariozechner/pi-coding-agent),
+[Pi coding agent](https://www.npmjs.com/package/@earendil-works/pi-coding-agent),
 which talks to `llama-server`'s OpenAI-compatible endpoint.
 
 Everything here exists because of a debugging session that produced several
@@ -27,7 +27,7 @@ cannot carry a comment saying so. If `LLAMA_PORT` in `llamactl` changes, that
 file must change with it.
 
 Install `llama.cpp` via `brew bundle` (it is in the Brewfile). Install Pi with
-`npm i -g @mariozechner/pi-coding-agent`.
+`npm i -g @earendil-works/pi-coding-agent`.
 
 ## Quickstart
 
@@ -55,7 +55,7 @@ llamactl code . -p "summarize this repo" --no-session
 
 |  | `llamactl chat` | `llamactl code [dir]` |
 |---|---|---|
-| Model | Gemma-4-12B QAT + MTP | the same one |
+| Model | Qwen3.8-27B-Unleashed UD-Q3_K_XL + MTP | the same one |
 | Tools | Off (`--no-tools`) — cannot touch files | Full read/write/edit/bash |
 | For | Questions, drafting, thinking out loud | Actual work on a codebase |
 
@@ -76,7 +76,7 @@ OpenAI-compatible API:
 ```bash
 curl -s http://127.0.0.1:8080/v1/chat/completions \
   -H 'Content-Type: application/json' \
-  -d '{"model":"unsloth/gemma-4-12B-it-qat-GGUF:UD-Q4_K_XL",
+  -d '{"model":"outsourc-e/Qwen3.8-27B-Unleashed-GGUF:UD-Q3_K_XL",
        "messages":[{"role":"user","content":"hello"}],
        "max_tokens":512}' | jq -r '.choices[0].message.content'
 ```
@@ -417,7 +417,7 @@ not installed.
 | Loads, then everything crawls | `llamactl status` — if `vm.swapusage` is climbing, the model is too big. Use a smaller one; the wired limit will not rescue it. |
 | Pi cannot reach the model | Confirm `~/.pi/agent/models.json` still symlinks into the repo, that it has the `llama-cpp` provider at `http://localhost:8080/v1`, and that its model ids match the profiles in `llamactl`. `pi --list-models \| grep llama-cpp` is the quick check. |
 | Wired limit still raised with nothing running | `llamactl stop` resets it whenever it finds it non-zero. Confirm with `sysctl iogpu.wired_limit_mb`. |
-| `command not found: pi` or `env: node: No such file or directory` | Pi is installed under nvm, which is initialized in `.zshrc` — interactive shells only. `llamactl` is non-interactive, so `.zshenv` → `.profile` rebuilds `PATH` without nvm's node bin. `llamactl` resolves the binary itself and prepends its directory so the `#!/usr/bin/env node` shebang also resolves. If it still fails, Pi is installed under a different Node version than the nvm default: `npm install -g @mariozechner/pi-coding-agent`. |
+| `command not found: pi` or `env: node: No such file or directory` | Pi is installed under nvm, which is initialized in `.zshrc` — interactive shells only. `llamactl` is non-interactive, so `.zshenv` → `.profile` rebuilds `PATH` without nvm's node bin. `llamactl` resolves the binary itself and prepends its directory so the `#!/usr/bin/env node` shebang also resolves. If it still fails, Pi is installed under a different Node version than the nvm default: `npm install -g @earendil-works/pi-coding-agent`. |
 | Empty `content` in an API response | The coding profile is a reasoning model: it fills `reasoning_content` first, and a low `max_tokens` hits `finish_reason: "length"` before any final content is emitted. Raise `max_tokens`. Not a server fault. |
 
 One thing llama.cpp reports at startup that is worth knowing about: upstream plans
@@ -439,7 +439,7 @@ inherits those numbers — Pi sessions included, not just evaluation runs.
 | Profile | Model | Settings | Source |
 |---|---|---|---|
 | `chat` | Qwen3.5-9B | `temp 1.0, top_p 0.95, top_k 20, min_p 0.0, presence_penalty 1.5` | Unsloth, "thinking mode, general tasks" |
-| `coding` | Gemma-4-12B | `temp 1.0, top_p 0.95, top_k 64, min_p 0.0` | Google, standardized config |
+| `default` | Qwen3.8-27B-Unleashed | `temp 1.0, top_p 0.95, top_k 20, min_p 0.0` | Qwen, general-task values |
 
 Note the `top_k` gap: Gemma's authors specify **64**, more than triple Qwen's 20. Until
 August 2026 this repo ran a single shared setting of 20 across both, which truncated

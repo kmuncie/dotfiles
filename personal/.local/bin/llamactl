@@ -52,13 +52,12 @@ WIRED_LIMIT_KEY="iogpu.wired_limit_mb"
 
 # Vision is off by default. Two reasons, and the second is the bigger one:
 #
-#   1. Memory. The projector is dead weight for text work — ~170MB on this model,
-#      879MB on the Qwen3.5-9B it replaced. On a 24GB machine that is a real
-#      fraction of the headroom.
+#   1. Memory. The projector is dead weight for text work — ~930MB on this model.
+#      On a 24GB machine that is a real fraction of the headroom.
 #
 #   2. --cache-reuse. llama-server logs "cache_reuse is not supported by
 #      multimodal, it will be disabled" and then ignores the --cache-reuse 256
-#      below. Gemma-4 is multimodal, so prompt-prefix reuse would silently never
+#      below. Qwen3.8 is multimodal, so prompt-prefix reuse would silently never
 #      run. Dropping the projector turns it back on, which matters most for `code`,
 #      where each turn re-sends a long and largely unchanged prefix.
 #
@@ -88,9 +87,11 @@ mkdir -p "$(dirname "$PIDFILE")"
 # rather than each owning one. Switching between them no longer reloads anything,
 # which is the practical reason to consolidate rather than merely a tidiness one.
 #
-# The model is Gemma-4-12B QAT with multi-token prediction, chosen on measurements
-# in docs/local-llm.md: 47.5 tok/s against 28.1 for the old coding profile and 41.9
-# for the old 9B chat profile, on less memory than either, with 6/6 tool-calling.
+# The model is Qwen3.8-27B-Unleashed (an abliterated Qwen3.8-27B) at UD-Q3_K_XL,
+# 13.2GB, with its built-in MTP head. It replaced Gemma-4-12B QAT by choice, NOT on
+# llamactl-measured numbers. The 27B re-test in docs/local-llm.md found 27B quants
+# at IQ4_XS (14.3GB) slow and tight on this machine; Q3_K_XL is about 1GB smaller
+# than that, so expect the same ballpark until scripts/llm-eval says otherwise.
 #
 # Context is 32768, doubled from the 16384 both old profiles used. The measured
 # peak was 10714MB against a 21000MB ceiling, so there was roughly 10GB spare and
@@ -99,7 +100,7 @@ mkdir -p "$(dirname "$PIDFILE")"
 # this model comfortable.
 typeset -A PROFILES
 PROFILES=(
-    default "unsloth/gemma-4-12B-it-qat-GGUF:UD-Q4_K_XL 32768"
+    default "outsourc-e/Qwen3.8-27B-Unleashed-GGUF:UD-Q3_K_XL 32768"
 )
 
 # Speculative-decoding setup, per profile. Empty for everything else.
@@ -120,7 +121,7 @@ PROFILES=(
 # an MTP profile identical to its baseline while looking like it ran.
 typeset -A DRAFTS
 DRAFTS=(
-    default "--spec-type draft-mtp -hfd unsloth/gemma-4-12B-it-qat-GGUF:Q4_0"
+    default "--spec-type draft-mtp"
 )
 
 # Sampler defaults, per profile, as published by each model's authors.
@@ -131,21 +132,31 @@ DRAFTS=(
 # Pi sessions included, not just evaluation runs. Setting them at the server
 # means one place to be correct.
 #
-# Gemma-4-12B. Google publishes a single standardized configuration for all use
-# cases: temperature 1.0, top_p 0.95, top_k 64. That "all use cases" is why one
-# entry now covers both chat and coding — there is no per-task variant to choose
-# between, unlike Qwen, which published different values for chat and for precise
-# coding.
+# Qwen3.8-27B. The Unleashed model card passes on Qwen's published general-task
+# values: temperature 1.0, top_p 0.95, top_k 20, min_p 0.0. Qwen publishes
+# different values for precise coding (temp 0.6), so a Qwen-based coding profile
+# should not inherit these.
 #
 # min_p is set to 0.0 (disabled) rather than left at llama-server's 0.05, because
-# Google specifies those three parameters and adding a fourth sampler they did
-# not ask for is a silent deviation.
-# https://huggingface.co/google/gemma-4-12b-it
+# the authors specify it and a fourth sampler they did not ask for is a silent
+# deviation.
+# https://huggingface.co/outsourc-e/Qwen3.8-27B-Unleashed-GGUF
 #
 # A profile with no entry here simply inherits llama-server's defaults.
 typeset -A SAMPLERS
 SAMPLERS=(
-    default "--temp 1.0 --top-p 0.95 --top-k 64 --min-p 0.0"
+    default "--temp 1.0 --top-p 0.95 --top-k 20 --min-p 0.0"
+)
+
+# Reasoning effort, passed to the chat template. Empty means the template default.
+#
+# Qwen3.8 thinks at length, and the Unleashed model card warns that reasoning eats
+# the output-token budget; it suggests `low` as the starting point and raising it
+# per task. Our August eval also saw reasoning traces exhaust a 2048-token budget.
+# Start at `low` and change it here if answers get shallow.
+typeset -A REASONING_EFFORT
+REASONING_EFFORT=(
+    default "low"
 )
 
 # Profiles safe for everyday use. Anything in PROFILES but not listed here is a
@@ -324,9 +335,13 @@ start() {
     fi
 
     # Word-split deliberately: these entries are flag strings.
-    local -a sampler_args draft_args
+    local -a sampler_args draft_args reasoning_args
     sampler_args=(${=SAMPLERS[$profile]:-})
     draft_args=(${=DRAFTS[$profile]:-})
+    reasoning_args=()
+    if [[ -n "${REASONING_EFFORT[$profile]:-}" ]]; then
+        reasoning_args=(--reasoning-effort "${REASONING_EFFORT[$profile]}")
+    fi
 
     echo "Starting $model (ctx=$ctx, vision=$VISION," \
          "wired limit ${WIRED_LIMIT_MB:-macOS default})..."
@@ -338,6 +353,9 @@ start() {
     if (( ${#draft_args} )); then
         echo "  speculative: ${draft_args[*]}"
     fi
+    if (( ${#reasoning_args} )); then
+        echo "  reasoning: ${reasoning_args[*]}"
+    fi
 
     # --parallel 1 is load-bearing: llama-server defaults to 4 slots and each
     # slot gets its own copy of the -c context window, so the default silently
@@ -347,7 +365,7 @@ start() {
         --parallel 1 -ngl 99 -c "$ctx" \
         --jinja -fa on --cache-reuse 256 \
         --cache-type-k q8_0 --cache-type-v q8_0 \
-        "${vision_args[@]}" "${sampler_args[@]}" "${draft_args[@]}" \
+        "${vision_args[@]}" "${sampler_args[@]}" "${draft_args[@]}" "${reasoning_args[@]}" \
         > "$LOGFILE" 2>&1 &
 
     echo $! > "$PIDFILE"
@@ -444,7 +462,7 @@ Looked on PATH and under $nvm_dir/versions/node/*/bin/pi.
 Pi is installed per Node version, so switching the nvm default hides it. Install
 it for the current version with:
 
-    npm install -g @mariozechner/pi-coding-agent
+    npm install -g @earendil-works/pi-coding-agent
 
 The server is still running — 'llamactl status' to check, 'llamactl stop' to
 shut it down.

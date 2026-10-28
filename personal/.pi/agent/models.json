@@ -6,7 +6,7 @@
          "apiKey": "none",
          "models": [
             {
-               "id": "unsloth/gemma-4-12B-it-qat-GGUF:UD-Q4_K_XL"
+               "id": "outsourc-e/Qwen3.8-27B-Unleashed-GGUF:UD-Q3_K_XL"
             }
          ]
       }
