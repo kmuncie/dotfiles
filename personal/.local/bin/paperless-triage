@@ -1,0 +1,539 @@
+#!/usr/bin/env python3
+"""Label the documents waiting in Paperless TRIAGE with the local model.
+
+Why this runs on the Mac and not inside Paperless: Paperless-ngx 3.x has its own AI
+suggestions, but the server would have to call the model. llamactl binds llama-server to
+127.0.0.1 on purpose (no API key, CORS wide open), so the server cannot reach it, and
+opening it up is the one thing llamactl's comments ask not to do. Running the client
+here means the model only ever talks to loopback, and the Paperless API is the only
+network traffic.
+
+It also does more than the built-in "Suggest" button: it fills the Tax Year and Account
+custom fields and fixes the created date, which Paperless's own date parser gets wrong
+on statements that print an older date first, such as a "member since" date.
+
+The model is NuExtract3, through llamactl's `paperless` profile. It is a 4B model built
+for one job: read a document and fill a JSON template. Templates can hold enums, so the
+server's own lists of correspondents, document types, tags and accounts go straight into
+the template, and llama-server's json_schema grammar holds the output to them. See
+docs/paperless.md for why it replaced the 27B general model here.
+
+What it does:
+
+  1. Finds documents tagged TRIAGE (the inbox tag) that are not yet tagged AI Labeled.
+     If there are none, it exits before loading a model.
+  2. Starts the `paperless` profile with `llamactl start paperless`, and stops it again
+     at the end if this script started it.
+  3. For each document, sends the OCR text with a template built from the server's
+     lists, thinking off. If that answer is unusable, it retries once with thinking on.
+  4. Validates every answer against those lists, then writes it back and adds the
+     AI Labeled tag. TRIAGE stays on: a person still reviews and removes it.
+
+The model never decides who can see a document. Family and Confidential control access
+(a workflow on the server shares Family documents with the other family account), so
+they are excluded from what the model may assign. Add them yourself during review, or
+in bulk from the document list.
+
+Usage:
+    paperless-triage                  # label everything waiting in TRIAGE
+    paperless-triage --dry-run        # show proposals, write nothing
+    paperless-triage --limit 5        # stop after five documents
+    paperless-triage --doc 412        # one document, even if it is not in TRIAGE
+    paperless-triage --redo           # include documents already tagged AI Labeled
+    paperless-triage --only-missing   # skip documents Auto matching already labeled
+    paperless-triage --keep-running   # leave the model loaded afterwards
+"""
+
+import argparse
+import base64
+import json
+import os
+import subprocess
+import sys
+import time
+import urllib.error
+import urllib.request
+from datetime import date
+from pathlib import Path
+
+# The server URL, the 1Password item and the household notes for the prompt are private,
+# and this repo is public, so they live in an untracked file. See docs/paperless.md for
+# its format. The directory is in .gitignore because ~/.config is stowed from this repo.
+CONFIG_PATH = Path(os.environ.get(
+    "PAPERLESS_TRIAGE_CONFIG", "~/.config/paperless-triage/config.json")).expanduser()
+
+# llamactl owns the port and the profile table. Keep these in sync with LLAMA_PORT and
+# the `paperless` entry in PROFILES there.
+LLAMA_URL = "http://127.0.0.1:8080"
+LLAMA_PROFILE = "paperless"
+
+INBOX_TAG = "TRIAGE"
+DONE_TAG = "AI Labeled"
+
+# Tags that control access or record provenance. The model may not assign them, and
+# the script never removes them.
+PROTECTED_TAGS = {INBOX_TAG, DONE_TAG, "Family", "Confidential"}
+
+TAX_YEAR_FIELD = "Tax Year"
+ACCOUNT_FIELD = "Account"
+
+# The enum value for "the sender is not in the list". The sender's name then goes in
+# new_sender, and the script creates a correspondent for it.
+OTHER = "Other"
+
+# Non-thinking answers are about 100 tokens. Thinking mode can spend a few thousand on
+# reasoning first, and reasoning counts against max_tokens: see MAX_TOKENS in
+# scripts/llm-eval/run-eval.py for what a small budget does there.
+MAX_TOKENS = 1024
+MAX_TOKENS_THINKING = 8192
+
+# NuExtract3's card: temperature 0.2 without thinking, 0.6 with it. The 0.2 is set on
+# the server by llamactl's SAMPLERS, so only the thinking retry sends a temperature.
+THINKING_TEMPERATURE = 0.6
+
+# The profile has a 16384-token context. OCR text is roughly 3-4 characters per token,
+# so 12000 characters plus the template and instructions stays well inside it. The
+# first pages carry the sender, the period and the dates, which is what matters.
+CONTENT_CHARS = 12000
+
+
+# ------------------------------------------------------------------------------
+# Paperless API
+# ------------------------------------------------------------------------------
+
+def load_config():
+    try:
+        config = json.loads(CONFIG_PATH.read_text())
+    except FileNotFoundError:
+        sys.exit(f"Error: no configuration at {CONFIG_PATH}. See docs/paperless.md in "
+                 "the dotfiles repo for the format.")
+    except json.JSONDecodeError as e:
+        sys.exit(f"Error: {CONFIG_PATH} is not valid JSON: {e}")
+    missing = [key for key in ("url", "op_item") if not config.get(key)]
+    if missing:
+        sys.exit(f"Error: {CONFIG_PATH} is missing {missing}.")
+    return config
+
+
+def op_field(item, field):
+    try:
+        return subprocess.run(
+            ["op", "item", "get", item, "--fields", field, "--reveal"],
+            capture_output=True, text=True, check=True,
+        ).stdout.strip()
+    except (FileNotFoundError, subprocess.CalledProcessError) as e:
+        sys.exit(f"Error: cannot read '{field}' from 1Password item {item}: {e}\n"
+                 "Sign in with `op signin`, or fix op_item in the configuration.")
+
+
+class Paperless:
+    def __init__(self, url, op_item):
+        self.url = url.rstrip("/") + "/api"
+        login = f"{op_field(op_item, 'username')}:{op_field(op_item, 'password')}"
+        self.auth = "Basic " + base64.b64encode(login.encode()).decode()
+
+    def call(self, method, path, body=None):
+        req = urllib.request.Request(
+            f"{self.url}/{path}", method=method,
+            data=json.dumps(body).encode() if body is not None else None,
+            headers={"Authorization": self.auth,
+                     "Content-Type": "application/json",
+                     "Accept": "application/json; version=9"},
+        )
+        try:
+            with urllib.request.urlopen(req, timeout=60) as r:
+                return json.load(r)
+        except urllib.error.HTTPError as e:
+            raise RuntimeError(f"{method} {path} -> {e.code}: {e.read().decode()[:300]}")
+
+    def all(self, endpoint, query=""):
+        results, page = [], 1
+        while True:
+            data = self.call("GET", f"{endpoint}/?page_size=100&page={page}{query}")
+            results += data["results"]
+            if not data.get("next"):
+                return results
+            page += 1
+
+
+# ------------------------------------------------------------------------------
+# llama-server lifecycle
+# ------------------------------------------------------------------------------
+
+def model_ready():
+    try:
+        with urllib.request.urlopen(f"{LLAMA_URL}/health", timeout=5) as r:
+            return r.status == 200
+    except Exception:
+        return False
+
+
+def running_profile():
+    """The profile llamactl says is serving, or None. Parsed from `llamactl status`,
+    whose first line reads "llama-server running (pid N, profile NAME)"."""
+    out = subprocess.run(["llamactl", "status"], capture_output=True, text=True).stdout
+    first = out.splitlines()[0] if out else ""
+    if "running" not in first or "profile " not in first:
+        return None
+    return first.split("profile ", 1)[1].rstrip(")").strip()
+
+
+def start_model():
+    """Start the `paperless` profile through llamactl, so the flags stay in one place.
+
+    Returns True if this script started it, so only that case gets stopped at the end.
+
+    A different profile that is already running belongs to someone else, most likely a
+    `llamactl chat` session on the default model. Replacing it would end that session
+    without warning, and its prompt format is not NuExtract's anyway, so the script
+    stops and says so instead.
+    """
+    current = running_profile()
+    if current == LLAMA_PROFILE and model_ready():
+        print(f"The '{LLAMA_PROFILE}' profile is already running, will leave it running.")
+        return False
+    if current and current != LLAMA_PROFILE:
+        sys.exit(f"Error: llamactl is serving the '{current}' profile. Stop it with "
+                 f"`llamactl stop`, then run this again.")
+    print(f"Starting the local model with `llamactl start {LLAMA_PROFILE}`...")
+    subprocess.run(["llamactl", "start", LLAMA_PROFILE], check=True)
+    # llamactl start already waits for /health. This is a second check, because a
+    # caller handed a server that is not ready gets a 503 on every request.
+    deadline = time.time() + 900
+    while not model_ready():
+        if time.time() > deadline:
+            sys.exit("Error: the model did not become ready in 15 minutes. "
+                     "See `llamactl logs`.")
+        time.sleep(3)
+    return True
+
+
+def chat(body):
+    req = urllib.request.Request(
+        f"{LLAMA_URL}/v1/chat/completions", data=json.dumps(body).encode(),
+        headers={"Content-Type": "application/json"},
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=900) as r:
+            choice = json.load(r)["choices"][0]
+    except urllib.error.HTTPError as e:
+        raise RuntimeError(f"llama-server {e.code}: {e.read().decode()[:300]}")
+    text = choice["message"].get("content") or ""
+    if not text.strip():
+        raise ValueError(f"empty answer (finish_reason {choice.get('finish_reason')})")
+    return parse_json(text)
+
+
+def parse_json(text):
+    """The outermost {...} in the answer, ignoring any fence or prose around it."""
+    start, end = text.find("{"), text.rfind("}")
+    if start < 0 or end < start:
+        raise ValueError(f"no JSON object in answer: {text[:200]!r}")
+    return json.loads(text[start:end + 1])
+
+
+# ------------------------------------------------------------------------------
+# Extraction
+# ------------------------------------------------------------------------------
+
+# NuExtract follows its template closely and instructions less closely, so the rules
+# below are short and concrete. Anything the template can express as an enum is an
+# enum rather than an instruction.
+INSTRUCTIONS = """\
+- title: a short title in the form "<sender> <kind of document> <period or date>", for
+  example "Bank Checking Statement 2024-03", "2024 Form 1099-INT", "Invoice 2005 -
+  <client>", "Website Proposal - <client> 2012-08".
+- sender: who issued or sent the document. If no choice fits, choose "Other" and put
+  the sender's short common name in new_sender. Otherwise new_sender is null.
+- recipient: the person or company the document is addressed or billed to.
+- created: the date the document was issued. For a statement, the last day of the
+  statement period. Never a birth date, a "member since" date or a due date. If no
+  issue date is printed, null.
+- tax_year: the tax year the document reports on, if it has one, else null.
+- account: only for a statement or tax form of one of the listed accounts, else null."""
+
+
+class Labels:
+    """The server's current label lists, looked up by name."""
+
+    def __init__(self, pl, config):
+        self.pl = pl
+        household = config.get("household") or []
+        self.instructions = INSTRUCTIONS + "".join(f"\n- {line}" for line in household)
+        # The household's own names, for example a business it ran. A document sent
+        # BY one of them (an invoice, a proposal) is filed under the recipient instead.
+        self.self_names = {n.casefold() for n in config.get("self_names") or []}
+        # Tags and Tax Year come from the document type, not from the model. In testing,
+        # NuExtract read types, dates and senders reliably, but tagged ordinary bank
+        # statements "Taxes" and "Business" and gave them a tax year, whatever the
+        # instructions said. A fixed mapping from type to tags cannot drift that way.
+        self.type_tags = config.get("type_tags") or {}
+        self.tax_year_types = set(config.get("tax_year_types") or [])
+
+        self.correspondents = {x["name"]: x["id"] for x in pl.all("correspondents")}
+        self.document_types = {x["name"]: x["id"] for x in pl.all("document_types")}
+        self.storage_paths = {x["name"]: x["id"] for x in pl.all("storage_paths")}
+        tags = pl.all("tags")
+        self.tags = {x["name"]: x["id"] for x in tags}
+        self.tag_names = {x["id"]: x["name"] for x in tags}
+        self.assignable_tags = sorted(set(self.tags) - PROTECTED_TAGS)
+
+        fields = {x["name"]: x for x in pl.all("custom_fields")}
+        self.tax_year_field = fields.get(TAX_YEAR_FIELD, {}).get("id")
+        account = fields.get(ACCOUNT_FIELD, {})
+        self.account_field = account.get("id")
+        options = (account.get("extra_data") or {}).get("select_options") or []
+        self.accounts = {o["label"]: o["id"] for o in options}
+
+        self.missing = [name for name in (INBOX_TAG, DONE_TAG) if name not in self.tags]
+
+    def template(self):
+        """NuExtract's template: the output shape, with each leaf's type or choices.
+        A list of strings is an enum, and a list inside a list is a multi-enum."""
+        return {
+            "title": "string",
+            "sender": sorted(self.correspondents) + [OTHER],
+            "new_sender": "string",
+            "recipient": "string",
+            "document_type": sorted(self.document_types),
+            "storage_path": sorted(self.storage_paths),
+            "created": "date",
+            "tax_year": "integer",
+            "account": sorted(self.accounts),
+        }
+
+    def schema(self):
+        """The same shape as a JSON schema, which llama-server compiles to a grammar.
+
+        The template alone already gets valid JSON almost every time. The grammar makes
+        it every time, and it pins each enum to the server's exact spelling, so a value
+        like "Example Bank, N.A." cannot slip past "Example Bank"."""
+        def nullable(schema):
+            return {"anyOf": [schema, {"type": "null"}]}
+
+        def choice(values):
+            return nullable({"enum": values}) if values else {"type": "null"}
+
+        properties = {
+            "title": nullable({"type": "string"}),
+            "sender": choice(sorted(self.correspondents) + [OTHER]),
+            "new_sender": nullable({"type": "string"}),
+            "recipient": nullable({"type": "string"}),
+            "document_type": choice(sorted(self.document_types)),
+            "storage_path": choice(sorted(self.storage_paths)),
+            "created": nullable({"type": "string",
+                                 "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"}),
+            "tax_year": nullable({"type": "integer"}),
+            "account": choice(sorted(self.accounts)),
+        }
+        return {"type": "object", "properties": properties,
+                "required": list(properties), "additionalProperties": False}
+
+    def extract(self, doc):
+        """One request with thinking off and the grammar on. If the answer cannot be
+        parsed, one retry with thinking on, as NuExtract's card suggests for hard
+        documents.
+
+        The retry drops the grammar. Constraining a reasoning trace to a JSON grammar
+        is not something this script relies on, and the answer is still validated
+        against the server's lists afterwards."""
+        content = (f"FILE NAME: {doc.get('original_file_name') or ''}\n\n"
+                   f"{(doc.get('content') or '')[:CONTENT_CHARS]}")
+        kwargs = {"template": json.dumps(self.template(), indent=4),
+                  "instructions": self.instructions}
+        body = {"model": "local", "max_tokens": MAX_TOKENS,
+                "messages": [{"role": "user", "content": content}],
+                "chat_template_kwargs": {**kwargs, "enable_thinking": False},
+                "response_format": {"type": "json_schema",
+                                    "json_schema": {"schema": self.schema()}}}
+        try:
+            return chat(body), False
+        except (ValueError, RuntimeError) as e:
+            print(f"    first answer unusable ({e}), retrying with thinking on")
+        body = {"model": "local", "max_tokens": MAX_TOKENS_THINKING,
+                "temperature": THINKING_TEMPERATURE,
+                "messages": [{"role": "user", "content": content}],
+                "chat_template_kwargs": {**kwargs, "enable_thinking": True}}
+        return chat(body), True
+
+    def correspondent_id(self, answer, create):
+        """The correspondent for the answer: an existing one, or a new one if allowed.
+
+        When the sender is one of the household's own names, the document went out
+        from the household (an invoice, a proposal), so it is filed under the
+        recipient instead."""
+        sender = answer.get("sender")
+        name = answer.get("new_sender") if sender == OTHER else sender
+        if (name or "").strip().casefold() in self.self_names:
+            name = answer.get("recipient")
+        name = (name or "").strip()
+        if not name or len(name) > 80 or name.casefold() in self.self_names:
+            return None
+        for existing, cid in self.correspondents.items():
+            if existing.casefold() == name.casefold():
+                return cid
+        if not create:
+            return f"(new) {name}"
+        cid = self.pl.call("POST", "correspondents/", {"name": name})["id"]
+        self.correspondents[name] = cid
+        print(f"    created correspondent: {name}")
+        return cid
+
+
+def valid_date(value):
+    try:
+        d = date.fromisoformat(str(value))
+    except ValueError:
+        return None
+    return d.isoformat() if 1980 <= d.year and d <= date.today() else None
+
+
+def build_patch(doc, answer, labels, dry_run):
+    """Turn the model's answer into a PATCH body. Anything invalid is left unchanged."""
+    patch = {}
+
+    title = str(answer.get("title") or "").strip()
+    if title:
+        patch["title"] = title[:128]
+
+    cid = labels.correspondent_id(answer, create=not dry_run)
+    if cid is not None:
+        patch["correspondent"] = cid
+
+    for key, table in (("document_type", labels.document_types),
+                       ("storage_path", labels.storage_paths)):
+        if answer.get(key) in table:
+            patch[key] = table[answer[key]]
+
+    created = valid_date(answer.get("created"))
+    if created:
+        patch["created"] = created
+
+    # Tags are only ever added. A tag that is already on the document may have been
+    # added by a person at upload, and the review step is where wrong ones come off.
+    doc_type = answer.get("document_type")
+    suggested = {labels.tags[t] for t in labels.type_tags.get(doc_type, [])
+                 if t in labels.assignable_tags}
+    done = {labels.tags[DONE_TAG]} if DONE_TAG in labels.tags else set()
+    patch["tags"] = sorted(set(doc["tags"]) | suggested | done)
+
+    # Custom fields are a full list on PATCH, so keep the instances already there.
+    fields = {f["field"]: f["value"] for f in doc.get("custom_fields") or []}
+    tax_year = answer.get("tax_year")
+    if (labels.tax_year_field and doc_type in labels.tax_year_types
+            and isinstance(tax_year, int) and 1980 <= tax_year <= 2100):
+        fields[labels.tax_year_field] = tax_year
+    if labels.account_field and answer.get("account") in labels.accounts:
+        fields[labels.account_field] = labels.accounts[answer["account"]]
+    patch["custom_fields"] = [{"field": k, "value": v} for k, v in fields.items()]
+
+    return patch
+
+
+def describe(patch, labels):
+    names = {v: k for k, v in labels.correspondents.items()}
+    types = {v: k for k, v in labels.document_types.items()}
+    accounts = {v: k for k, v in labels.accounts.items()}
+    fields = {f["field"]: f["value"] for f in patch["custom_fields"]}
+    corr = patch.get("correspondent")
+    return (f"    title:   {patch.get('title')}\n"
+            f"    from:    {names.get(corr, corr)}\n"
+            f"    type:    {types.get(patch.get('document_type'))}\n"
+            f"    date:    {patch.get('created')}\n"
+            f"    tax:     {fields.get(labels.tax_year_field)}"
+            f"   account: {accounts.get(fields.get(labels.account_field))}\n"
+            f"    tags:    {[labels.tag_names.get(t, t) for t in patch['tags']]}")
+
+
+# ------------------------------------------------------------------------------
+# Main
+# ------------------------------------------------------------------------------
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
+    parser.add_argument("--dry-run", action="store_true", help="write nothing")
+    parser.add_argument("--limit", type=int, help="stop after N documents")
+    parser.add_argument("--doc", type=int, action="append",
+                        help="label this document ID (repeatable), even outside TRIAGE")
+    parser.add_argument("--redo", action="store_true",
+                        help="include documents already tagged AI Labeled")
+    parser.add_argument("--only-missing", action="store_true",
+                        help="skip documents that already have a correspondent and a "
+                             "document type")
+    parser.add_argument("--keep-running", action="store_true",
+                        help="leave the model loaded afterwards")
+    args = parser.parse_args()
+
+    # llamactl writes to the same terminal. Without line buffering, its startup lines
+    # appear above this script's earlier output when stdout is a pipe.
+    sys.stdout.reconfigure(line_buffering=True)
+
+    config = load_config()
+    pl = Paperless(config["url"], config["op_item"])
+    labels = Labels(pl, config)
+
+    # A dry run writes nothing, so it can run before the tags exist. A real run needs
+    # DONE_TAG, or the next run would label the same documents again.
+    if labels.missing and not args.dry_run:
+        sys.exit(f"Error: tag(s) {labels.missing} do not exist on the server. Create "
+                 f"them first, with matching set to None for '{DONE_TAG}'.")
+    if INBOX_TAG in labels.missing:
+        sys.exit(f"Error: the inbox tag '{INBOX_TAG}' does not exist on the server.")
+
+    if args.doc:
+        docs = [pl.call("GET", f"documents/{i}/") for i in args.doc]
+    else:
+        query = f"&tags__id__all={labels.tags[INBOX_TAG]}&ordering=added"
+        if not args.redo and DONE_TAG in labels.tags:
+            query += f"&tags__id__none={labels.tags[DONE_TAG]}"
+        docs = pl.all("documents", query)
+
+    # Paperless's own Auto matching sets the correspondent and document type at upload
+    # once it has trained on similar documents. Those documents only need a person to
+    # check them, so the model can skip them. Dates and custom fields are not learned,
+    # which is why this is opt-in rather than the default.
+    if args.only_missing:
+        labeled = [d for d in docs if d.get("correspondent") and d.get("document_type")]
+        docs = [d for d in docs if d not in labeled]
+        if labeled:
+            print(f"Skipping {len(labeled)} document(s) that Auto matching already labeled.")
+    docs = docs[:args.limit] if args.limit else docs
+
+    if not docs:
+        print("Nothing waiting in TRIAGE. The model was not started.")
+        return
+
+    print(f"{len(docs)} document(s) to label{' (dry run)' if args.dry_run else ''}.")
+    started_here = start_model()
+    done = failed = 0
+    began_all = time.time()
+    try:
+        for n, doc in enumerate(docs, 1):
+            print(f"\n[{n}/{len(docs)}] #{doc['id']} {doc.get('original_file_name') or doc['title']}")
+            began = time.time()
+            try:
+                answer, thought = labels.extract(doc)
+                patch = build_patch(doc, answer, labels, args.dry_run)
+            except Exception as e:
+                failed += 1
+                print(f"    skipped: {type(e).__name__}: {e}")
+                continue
+            print(describe(patch, labels))
+            if not args.dry_run:
+                pl.call("PATCH", f"documents/{doc['id']}/", patch)
+            done += 1
+            print(f"    ({time.time() - began:.1f}s{', with thinking' if thought else ''})")
+    except KeyboardInterrupt:
+        print("\nInterrupted. Labeled documents keep their labels; run again to continue.")
+    finally:
+        if started_here and not args.keep_running:
+            print("\nStopping the model with `llamactl stop`...")
+            subprocess.run(["llamactl", "stop"], check=False)
+
+    verb = "would label" if args.dry_run else "labeled"
+    print(f"\nDone: {verb} {done}, skipped {failed} in {time.time() - began_all:.0f}s. "
+          "Review them in TRIAGE, add Family where it belongs, then remove TRIAGE.")
+
+
+if __name__ == "__main__":
+    main()
