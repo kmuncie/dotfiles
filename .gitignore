@@ -50,3 +50,13 @@ personal/.pi/agent/*
 # which makes CPython write one of these next to the source.
 __pycache__/
 *.pyc
+
+# Herdr app: the app writes most of this folder (state, sockets, type files, shipped
+# layouts, mods and icons), and the work-board mod and layout come from another repo.
+# Track only the files that hold real preferences: settings, keys, and custom themes.
+personal/.config/herdr-app/*
+!personal/.config/herdr-app/settings.json
+!personal/.config/herdr-app/keys.json
+!personal/.config/herdr-app/themes/
+personal/.config/herdr-app/themes/atom-one-dark.json
+personal/.config/herdr-app/themes/win98.json
