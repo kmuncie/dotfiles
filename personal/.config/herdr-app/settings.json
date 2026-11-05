@@ -1,0 +1,14 @@
+{
+  "zoom": 1.0,
+  "sounds": {
+    "enabled": true
+  },
+  "font": "FantasqueSansM Nerd Font Mono",
+  "font_ligatures": false,
+  "ui_font": "FantasqueSansM Nerd Font Mono",
+  "telemetry": false,
+  "minimum_contrast": 1.0,
+  "appearance": "dark",
+  "font_size": 16,
+  "theme": "catppuccin-mocha"
+}
