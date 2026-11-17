@@ -60,7 +60,7 @@ brew "ykpers"
 # Cloud / infra
 # ------------------------------------------------------------------------------
 brew "awscli"
-brew "azure-cli"
+# brew "azure-cli"           # unused: ADO scripts call the REST API with curl; now a cask
 brew "common-fate/granted/granted"  # AWS role assumption (assume function)
 brew "teamookla/speedtest/speedtest"
 brew "iperf3"
@@ -142,6 +142,7 @@ cask "firefox@developer-edition"
 cask "google-chrome"
 cask "google-chrome@canary"
 cask "grandperspective"
+cask "herdr-app"            # desktop app for terminals and coding agents
 cask "imageoptim"
 cask "iterm2"
 cask "maccy"
@@ -150,6 +151,7 @@ cask "macparakeet"           # local speech-to-text / meeting transcription
 # cask "mactex"            # ~5GB TeX distribution — re-enable if you need LaTeX
 cask "microsoft-auto-update"
 cask "microsoft-onenote"
+cask "microsoft-outlook"
 cask "microsoft-teams"
 # cask "mullvad-vpn"
 cask "nextcloud"
@@ -177,7 +179,8 @@ cask "zoom"
 # ------------------------------------------------------------------------------
 mas "1Blocker",           id: 1365531024
 mas "FirstSeed Calendar", id: 1348617240
-mas "MacFamilyTree 11",   id: 6480510488
+# MacFamilyTree 11: direct download from Synium (not the App Store build), install by hand.
+# mas "MacFamilyTree 11",   id: 6480510488
 mas "Things",             id: 904280696
 mas "Transporter",        id: 1450874784
 mas "Weathergraph",       id: 1501958576
